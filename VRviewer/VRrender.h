@@ -298,7 +298,7 @@ void Init_OpenGL(int argc, char **argv, const char* title)
 		getchar();
 		return;
 	}
-
+	adfa
 	// shaders
 	//Init_GLshader();
 
