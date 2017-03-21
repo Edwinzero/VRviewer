@@ -41,5 +41,8 @@
     <ClInclude Include="VRrender.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="HMD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

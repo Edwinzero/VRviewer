@@ -6,6 +6,9 @@
 #include <string>
 #include <iostream>
 
+
+#ifndef _GL_VR_OBJECT_H
+#define _GL_VR_OBJECT_H
 class GLVRobject {
 	GLuint m_vbo;
 	GLuint m_ibo;
@@ -102,5 +105,133 @@ void GLVRobject::Draw() {
 
 	glBindVertexArray(0);
 }
+#endif // !_GL_VR_OBJECT_H
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef _GL_MODEL_OBJECT_H
+#define _GL_MODEL_OBJECT_H
+
+class GLobject {
+	GLuint m_vbo;
+	GLuint m_ibo;
+	GLuint m_vao;
+	GLuint m_tex;
+	GLuint m_ubo;
+	GLuint m_nbo;
+	GLsizei m_vertCount;
+	GLsizei m_indiceCount;
+	std::string m_modelName;
+public:
+	GLobject(const std::string &modelName) : m_modelName(modelName) {
+		m_ibo = -1;
+		m_tex = -1;
+		m_vao = -1;
+		m_vbo = -1;
+		m_ubo = -1;
+		m_nbo = -1;
+	}
+
+	~GLobject() { Cleanup(); }
+
+	void InitBuffer(std::vector<float> vertices, std::vector<float> normals, std::vector<float> uvs, std::vector<unsigned int> indices);
+	bool BindTexture();
+	void Cleanup();
+	void DrawIBO();
+	void DrawVBO();
+	const std::string &GetName() const { return m_modelName; }
+};
+
+void GLobject::InitBuffer(std::vector<float> vertices, std::vector<float> normals, std::vector<float> uvs, std::vector<unsigned int> indices) {
+	m_vertCount = vertices.size() / 3;
+	size_t numNormals = normals.size() / 3;
+	size_t numUVs = uvs.size() / 2;
+	size_t numIndices = indices.size();
+
+	glGenVertexArrays(1, &m_vao);
+	glBindVertexArray(m_vao);
+	/// position
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*m_vertCount * 3, vertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0); // bind vao to vbo
+				
+	/// normal
+	if (numNormals > 0) {
+		glEnableVertexAttribArray(1);
+		glGenBuffers(1, &m_nbo);
+		glBindBuffer(GL_ARRAY_BUFFER, m_nbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float)*numNormals * 3, normals.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0); // bind vao to vbo
+	}
+	/// uvs
+	if (numUVs > 0) {
+		glEnableVertexAttribArray(2);
+		glGenBuffers(1, &m_ubo);
+		glBindBuffer(GL_ARRAY_BUFFER, m_ubo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float)*numUVs * 2, uvs.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (GLvoid*)0); // bind vao to vbo
+	}
+
+	// IBO
+	glGenBuffers(1, &m_ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*numIndices, indices.data(), GL_STATIC_DRAW);
+	m_indiceCount = numIndices;
+	// Reset State
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+}
+
+// TODO
+bool GLobject::BindTexture() {
+	return false;
+}
+
+void GLobject::Cleanup() {
+	if (m_vbo)
+	{
+		glDeleteVertexArrays(1, &m_vao);
+		glDeleteBuffers(1, &m_vbo);
+		m_vao = -1;
+		m_vbo = -1;
+	}
+	if (m_nbo) {
+		glDeleteBuffers(1, &m_nbo);
+		m_nbo = -1;
+	}
+	if (m_ibo) {
+		glDeleteBuffers(1, &m_ibo);
+		m_ibo = -1;
+	}
+	if (m_ubo) {
+		glDeleteBuffers(1, &m_ubo);
+		m_ubo = -1;
+	}
+}
+void GLobject::DrawIBO() {
+	glBindVertexArray(m_vao);
+
+	if (m_tex) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_tex);
+	}
+
+	glDrawElements(GL_TRIANGLES, m_vertCount, GL_UNSIGNED_SHORT, 0);
+
+	glBindVertexArray(0);
+}
+
+void GLobject::DrawVBO() {
+	glBindVertexArray(m_vao);
+	if (m_tex) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_tex);
+	}
+	glDrawArrays(GL_TRIANGLES, 0, m_vertCount);
+	glBindVertexArray(0);
+}
+#endif // !_GL_MODEL_OBJECT_H
 
 #endif // !_GL_RENDER_OBJECT_H

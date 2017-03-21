@@ -30,6 +30,7 @@ typedef struct GLHMDinfo {
 	int m_ValidPoseCount_Last;
 }GLHMDinfo;
 
+
 //=========================================================================
 //		Draw methods
 //=========================================================================
@@ -146,7 +147,7 @@ void Render(void)
 	if (1) {
 		DrawToHMD();
 	}
-
+	
 	glFlush();
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -282,7 +283,7 @@ void Init_OpenGL(int argc, char **argv, const char* title)
 	//glutInitContextFlags(GLUT_FORWARD_COMPATIBLE); // cause error
 	glutInitContextProfile(GLUT_CORE_PROFILE);
 
-	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+	//glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);  // reduce speed...
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE | GLUT_MULTISAMPLE);
 
 	glutInitWindowSize(screenWidth, screenHeight);

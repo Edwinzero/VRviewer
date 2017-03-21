@@ -29,3 +29,6 @@
 *.app
 /VRviewer/x64/Debug
 /x64/Debug
+.vs/VRviewer/v14/.suo
+*.db
+*.db
