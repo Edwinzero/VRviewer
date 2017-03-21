@@ -85,8 +85,8 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\MOCA_deps\openvr-1.0.6\lib\win64;C:\MOCA_deps\freeglut\lib\x64;C:\MOCA_deps\Depends\OpenGL\lib\x86_64;C:\MOCA_deps\OpenCL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freeglut.lib;glew64.lib;OpenCL.lib;openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\MOCA_deps\Depends;C:\MOCA_deps\openvr-1.0.6\lib\win64;C:\MOCA_deps\freeglut\lib\x64;C:\MOCA_deps\Depends\OpenGL\lib\x86_64;C:\MOCA_deps\OpenCL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freeglut.lib;glfw3dll.lib;glew32.lib;OpenCL.lib;openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -124,7 +124,11 @@
     <ClInclude Include="HMD.h" />
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="TestScene.h" />
+    <ClInclude Include="ViveCalbiration.h" />
     <ClInclude Include="VRrender.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="todo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

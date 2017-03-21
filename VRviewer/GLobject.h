@@ -9,6 +9,9 @@
 
 #ifndef _GL_VR_OBJECT_H
 #define _GL_VR_OBJECT_H
+//=========================================================================
+//		GL VR object class 
+//=========================================================================
 class GLVRobject {
 	GLuint m_vbo;
 	GLuint m_ibo;
@@ -107,10 +110,12 @@ void GLVRobject::Draw() {
 }
 #endif // !_GL_VR_OBJECT_H
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #ifndef _GL_MODEL_OBJECT_H
 #define _GL_MODEL_OBJECT_H
-
+//=========================================================================
+//		GL model object class 
+//=========================================================================
 class GLobject {
 	GLuint m_vbo;
 	GLuint m_ibo;
@@ -233,5 +238,67 @@ void GLobject::DrawVBO() {
 	glBindVertexArray(0);
 }
 #endif // !_GL_MODEL_OBJECT_H
+
+#ifndef _GL_FRAMEBUFFER_OBJECT_H
+#define _GL_FRAMEBUFFER_OBJECT_H
+//=========================================================================
+//		GL Framebuffer class 
+//=========================================================================
+typedef struct GLfbo {
+	GLuint m_depthbuf;
+	GLuint m_renderTex;
+	GLuint m_framebuffer;
+	GLuint m_resolveTex;
+	GLuint m_resolveFramebuffer;
+
+}GLfbo;
+
+bool CreateFBO(GLfbo &obj, int width, int height) {
+	// framebuffer
+	glGenFramebuffers(1, &obj.m_framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, obj.m_framebuffer);
+//#define USE_MULTISAMPLE
+#if USE_MULTISAMPLE
+	glGenRenderbuffers(1, &obj.m_depthbuf);	// bind depth buffer
+	glBindRenderbuffer(GL_RENDERBUFFER, obj.m_depthbuf);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, obj.m_depthbuf);
+
+	glGenTextures(1, &obj.m_renderTex);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, obj.m_renderTex);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA8, width, height, true);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, obj.m_renderTex, 0);
+#else
+	glGenRenderbuffers(1, &obj.m_depthbuf);	// bind depth buffer
+	glBindRenderbuffer(GL_RENDERBUFFER, obj.m_depthbuf);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, obj.m_depthbuf);
+
+	glGenTextures(1, &obj.m_renderTex);
+	glBindTexture(GL_TEXTURE_2D, obj.m_renderTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, obj.m_renderTex, 0);
+#endif 
+	// resovleFramebuffer
+	glGenFramebuffers(1, &obj.m_resolveFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, obj.m_resolveFramebuffer);
+
+	glGenTextures(1, &obj.m_resolveFramebuffer);
+	glBindTexture(GL_TEXTURE_2D, obj.m_resolveFramebuffer);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, obj.m_resolveFramebuffer, 0);
+
+	// check FBO status
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+	{
+		return false;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	return true;
+}
+#endif // !_GL_FRAMEBUFFER_OBJECT_H
 
 #endif // !_GL_RENDER_OBJECT_H

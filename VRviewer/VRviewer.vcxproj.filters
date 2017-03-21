@@ -44,5 +44,13 @@
     <ClInclude Include="HMD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ViveCalbiration.h">
+      <Filter>Calibration</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="todo.txt">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

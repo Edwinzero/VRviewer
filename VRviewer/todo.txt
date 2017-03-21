@@ -1,0 +1,46 @@
+1 GetTrackedDeviceString
+2 BInit
+
+void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
+{
+	dprintf( "GL Error: %s\n", message );
+}
+
+3 BInitGL
+
+// Purpose: Initialize Compositor. Returns true if the compositor was
+//          successfully initialized, false otherwise.
+4 BInitCompositor
+
+5 Shutdown
+
+6 HandleInput
+7 RunMainLoop
+8 ProcessVREvent
+
+9 RenderFrame  == Render() in the project
+10 CreateAllShaders
+11 SetupTexturemaps
+12 SetupScene  (set cubes)
+
+13 RenderControllerAxes
+14 SetupCameras
+15 CreateFrameBuffer																															done
+
+16 SetupStereoRenderTargets == (create 2 fbo for left and right eye)
+17 SetupCompanionWindow == (create window to contain HMD content)
+18 RenderStereoTargets == (render left and right eye using fbo)
+19 RenderScene == (render the scene from a single eye)
+20 RenderCompanionWindow == (render the companion window which is render 2 fbo to companion window)
+
+21 GetHMDMatrixProjectionEye == utils
+22 GetHMDMatrixPoseEye == utils
+23 GetCurrentViewProjectionMatrix
+
+24 UpdateHMDMatrixPose == (update the transformation in HMD)
+
+25 FindOrLoadRenderModel ==   (Finds a render model we've already loaded or loads a new one) rendermodel here indicates VIVE devices
+26 SetupRenderModelForTrackedDevice == (Create/destroy GL a Render Model for a single tracked device)
+27 SetupRenderModels == (create / destroy GL render models)
+28 ConvertSteamVRMatrixToMatrix4 == (Converts a SteamVR matrix to our local matrix class) (TODO : Eigen + glm)
+

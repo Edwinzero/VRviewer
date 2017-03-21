@@ -29,11 +29,21 @@ typedef struct GLHMDinfo {
 	int m_ValidPoseCount;
 	int m_ValidPoseCount_Last;
 }GLHMDinfo;
+//=========================================================================
+//		HMD methods
+//=========================================================================
+void RenderSceneToEye(vr::Hmd_Eye nEye) {
 
-
+}
 //=========================================================================
 //		Draw methods
 //=========================================================================
+void DrawSceneHMD() {
+	glEnable(GL_MULTISAMPLE);
+	// left eye
+
+	// right eye
+}
 void DrawScene2D() {
 	{
 		//glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT);
@@ -299,7 +309,7 @@ void Init_OpenGL(int argc, char **argv, const char* title)
 		getchar();
 		return;
 	}
-	adfa
+	
 	// shaders
 	//Init_GLshader();
 
