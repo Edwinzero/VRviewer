@@ -4,12 +4,15 @@
 #include "RenderUtils.h"
 #include "GLobject.h"
 #include "TestScene.h"
-
 using namespace std;
+
 unsigned int screenWidth = 800;
 unsigned int screenHeight = 800;
 bool reComplieShader = false;
-GLuint GLVRRenderProgram = -1;
+GLuint GLsceneProgram = -1;
+GLuint GLcontrollerProgram = -1;
+GLuint GLHMDdeviceRenderProgram = -1;
+GLuint GLdesktopWindowProgram = -1;
 
 // ** HMD object to commu with vive
 typedef struct HMD {
@@ -20,15 +23,36 @@ typedef struct HMD {
 	std::string					m_strDisplay;
 	glm::mat4					m_mat4DevicePose[ vr::k_unMaxTrackedDeviceCount ];		// get pose of each device
 	bool						m_ShowTrackedDevice[ vr::k_unMaxTrackedDeviceCount ]; // flag
+	
+	glm::mat4 m_mat4HMDPose;
+	glm::mat4 m_mat4eyePosLeft;
+	glm::mat4 m_mat4eyePosRight;
+
+	glm::mat4 m_mat4ProjectionCenter;
+	glm::mat4 m_mat4ProjectionLeft;
+	glm::mat4 m_mat4ProjectionRight;
 }HMD;
 
-// ** HMD info that GL tracks (flags for rendering VIVE dev)
-typedef struct GLHMDinfo {
+// ** HMD info that GL render instruction (flags for rendering VIVE dev)
+typedef struct HMDinfo {
 	int m_TrackedControllerCount;
 	int m_TrackedControllerCount_Last;
 	int m_ValidPoseCount;
 	int m_ValidPoseCount_Last;
-}GLHMDinfo;
+}HMDinfo;
+
+typedef struct GLHMDdata {
+	GLfbo leftEye;
+	GLfbo rightEye;
+}GLHMDdata;
+//=========================================================================
+//		HMD object
+//=========================================================================
+HMD vive;							// access all device data
+HMDinfo viveInfo;					// access all device available status
+GLHMDdata viveGLbuf;				// access vive render content
+
+
 //=========================================================================
 //		HMD methods
 //=========================================================================
@@ -38,7 +62,11 @@ void RenderSceneToEye(vr::Hmd_Eye nEye) {
 //=========================================================================
 //		Draw methods
 //=========================================================================
-void DrawSceneHMD() {
+void StreamEyeTexToHMD() {
+
+}
+
+void DrawHMDScene() {
 	glEnable(GL_MULTISAMPLE);
 	// left eye
 
@@ -283,7 +311,10 @@ void MouseMoveCallback(int x, int y)
 //		Initialize platforms
 //=========================================================================
 void Init_GLshader(void) {
-	GLVRRenderProgram = CompileGLShader("PointRender", "Shaders/PointRender.vs", "Shaders/PointRender.fs");
+	GLsceneProgram = CompileGLShader("SceneRender", "Shaders/Scene.vs", "Shaders/Scene.fs");
+	GLcontrollerProgram = CompileGLShader("Controller", "Shaders/Controller.vs", "Shaders/Controller.fs");
+	GLHMDdeviceRenderProgram = CompileGLShader("RenderVIVEdevice", "Shaders/RenderVIVEdevice.vs", "Shaders/RenderVIVEdevice.fs");
+	GLdesktopWindowProgram = CompileGLShader("DesktopWindow", "Shaders/DesktopWindow.vs", "Shaders/DesktopWindow.fs");
 }
 // initialize ogl and imgui
 void Init_OpenGL(int argc, char **argv, const char* title)
@@ -311,7 +342,7 @@ void Init_OpenGL(int argc, char **argv, const char* title)
 	}
 	
 	// shaders
-	//Init_GLshader();
+	Init_GLshader();
 
 	// callback
 	glutDisplayFunc(Render);
@@ -337,7 +368,6 @@ void sample_vr_viewer(int argc, char **argv) {
 	GLVRobject obj("hehe");
 	Init_OpenGL(argc, argv, "VR render");
 	Init_RenderScene();
-	//Init_GLshader();
 
 	glutMainLoop();
 }

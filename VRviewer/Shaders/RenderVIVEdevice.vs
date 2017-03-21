@@ -10,5 +10,5 @@ out vec2 UVs;
 
 void main(){
     UVs = uvs;
-    gl_Position = matrix * vec4(position, 1.0);
+    gl_Position = matrix * vec4(position.xyz, 1.0);
 }
