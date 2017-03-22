@@ -17,6 +17,11 @@
 #define _countof(x) (sizeof(x)/sizeof((x)[0]))
 #endif
 
+void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
+{
+	printf("GL Error: %s\n", message);
+}
+
 void ThreadSleep(unsigned long nMilliseconds)
 {
 #if defined(_WIN32)

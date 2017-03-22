@@ -117,6 +117,7 @@ void GLVRobject::Draw() {
 //		GL model object class 
 //=========================================================================
 class GLobject {
+public:
 	GLuint m_vbo;
 	GLuint m_ibo;
 	GLuint m_vao;
@@ -127,6 +128,16 @@ class GLobject {
 	GLsizei m_indiceCount;
 	std::string m_modelName;
 public:
+	GLobject() {
+		m_ibo = -1;
+		m_tex = -1;
+		m_vao = -1;
+		m_vbo = -1;
+		m_ubo = -1;
+		m_nbo = -1;
+		m_modelName = "";
+	}
+
 	GLobject(const std::string &modelName) : m_modelName(modelName) {
 		m_ibo = -1;
 		m_tex = -1;
@@ -298,6 +309,14 @@ bool CreateFBO(GLfbo &obj, int width, int height) {
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return true;
+}
+
+void CleanFBO(GLfbo &obj) {
+	glDeleteRenderbuffers(1, &obj.m_depthbuf);
+	glDeleteTextures(1, &obj.m_renderTex);
+	glDeleteFramebuffers(1, &obj.m_framebuffer);
+	glDeleteTextures(1, &obj.m_resolveTex);
+	glDeleteFramebuffers(1, &obj.m_resolveFramebuffer);
 }
 #endif // !_GL_FRAMEBUFFER_OBJECT_H
 

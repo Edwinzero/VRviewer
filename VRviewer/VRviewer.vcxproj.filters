@@ -19,10 +19,16 @@
     <Filter Include="Rendering">
       <UniqueIdentifier>{a876ae09-117b-43ed-b4c3-14c6083d4cde}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty">
+      <UniqueIdentifier>{1b4a182a-b995-4f2d-8a0f-1fe649df7dfa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\lodepng.cpp">
+      <Filter>3rdParty</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -46,6 +52,9 @@
     </ClInclude>
     <ClInclude Include="ViveCalbiration.h">
       <Filter>Calibration</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\lodepng.h">
+      <Filter>3rdParty</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

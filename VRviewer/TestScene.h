@@ -6,6 +6,7 @@
 
 #include <glm\mat4x4.hpp>
 #include <glm\vec4.hpp>
+#include <glm/gtx/transform.hpp>
 
 void AddCubeVertex(float fl0, float fl1, float fl2, float fl3, float fl4, std::vector<float> &vertdata)
 {

@@ -5,6 +5,4 @@
 #include <vector>
 #include <openvr.h>
 
-class HMD {
-};
 #endif // !_HMD_VIVE_H

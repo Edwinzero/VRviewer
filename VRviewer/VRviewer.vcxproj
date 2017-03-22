@@ -116,9 +116,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="3rdParty\lodepng.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="3rdParty\lodepng.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="GLobject.h" />
     <ClInclude Include="HMD.h" />
