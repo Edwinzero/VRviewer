@@ -7,6 +7,21 @@
 #include <glm\mat4x4.hpp>
 #include <glm\vec4.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+void PrintGLMmat4(glm::mat4 &mat) {
+	printf("%f, %f, %f, %f \n", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
+	printf("%f, %f, %f, %f \n", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
+	printf("%f, %f, %f, %f \n", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
+	printf("%f, %f, %f, %f \n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+}
+void PrintGLMmat4(glm::mat4 &mat, const char* str) {
+	printf("%s: \n", str);	
+	printf("%f, %f, %f, %f \n", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
+	printf("%f, %f, %f, %f \n", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
+	printf("%f, %f, %f, %f \n", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
+	printf("%f, %f, %f, %f \n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+}
 
 void AddCubeVertex(float fl0, float fl1, float fl2, float fl3, float fl4, std::vector<float> &vertdata)
 {

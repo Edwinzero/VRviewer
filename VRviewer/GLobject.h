@@ -268,8 +268,8 @@ bool CreateFBO(GLfbo &obj, int width, int height) {
 	// framebuffer
 	glGenFramebuffers(1, &obj.m_framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, obj.m_framebuffer);
-//#define USE_MULTISAMPLE
-#if USE_MULTISAMPLE
+#define USE_MULTISAMPLE
+#ifdef USE_MULTISAMPLE
 	glGenRenderbuffers(1, &obj.m_depthbuf);	// bind depth buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, obj.m_depthbuf);
 	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT, width, height);
@@ -294,12 +294,12 @@ bool CreateFBO(GLfbo &obj, int width, int height) {
 	glGenFramebuffers(1, &obj.m_resolveFramebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, obj.m_resolveFramebuffer);
 
-	glGenTextures(1, &obj.m_resolveFramebuffer);
-	glBindTexture(GL_TEXTURE_2D, obj.m_resolveFramebuffer);
+	glGenTextures(1, &obj.m_resolveTex);
+	glBindTexture(GL_TEXTURE_2D, obj.m_resolveTex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, obj.m_resolveFramebuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, obj.m_resolveTex, 0);
 
 	// check FBO status
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);

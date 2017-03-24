@@ -12,13 +12,13 @@ void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 //          successfully initialized, false otherwise.
 4 BInitCompositor																																done
 
-5 Shutdown
+5 Shutdown																																		done
 
-6 HandleInput
-7 RunMainLoop
-8 ProcessVREvent
+6 HandleInput																																	done
+7 RunMainLoop																																	done
+8 ProcessVREvent																																done
 
-9 RenderFrame  == Render() in the project
+9 RenderFrame  == Render() in the project																										done
 10 CreateAllShaders																																done
 11 SetupTexturemaps																																done
 12 SetupScene  (set cubes)																														done
@@ -29,9 +29,9 @@ void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 
 16 SetupStereoRenderTargets == (create 2 fbo for left and right eye)																			done
 17 SetupCompanionWindow == (create window to contain HMD content)																				done
-18 RenderStereoTargets == (render left and right eye using fbo)
-19 RenderScene == (render the scene from a single eye)
-20 RenderCompanionWindow == (render the companion window which is render 2 fbo to companion window)
+18 RenderStereoTargets == (render left and right eye using fbo)																					done
+19 RenderScene == (render the scene from a single eye)																							done
+20 RenderCompanionWindow == (render the companion window which is render 2 fbo to companion window)												done
 
 21 GetHMDMatrixProjectionEye == utils																											done
 22 GetHMDMatrixPoseEye == utils																													done

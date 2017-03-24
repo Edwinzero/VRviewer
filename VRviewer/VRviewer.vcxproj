@@ -87,6 +87,7 @@
     <Link>
       <AdditionalLibraryDirectories>C:\MOCA_deps\Depends;C:\MOCA_deps\openvr-1.0.6\lib\win64;C:\MOCA_deps\freeglut\lib\x64;C:\MOCA_deps\Depends\OpenGL\lib\x86_64;C:\MOCA_deps\OpenCL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>freeglut.lib;glfw3dll.lib;glew32.lib;OpenCL.lib;openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
