@@ -22,10 +22,10 @@ class GLVRobject {
 
 public:
 	GLVRobject(const std::string &modelName) : m_modelName(modelName){
-		m_ibo = -1;
-		m_tex = -1;
-		m_vao = -1;
-		m_vbo = -1;
+		m_ibo = 0;
+		m_tex = 0;
+		m_vao = 0;
+		m_vbo = 0;
 	}
 
 	~GLVRobject() { Cleanup(); }
@@ -93,9 +93,9 @@ void GLVRobject::Cleanup() {
 		glDeleteBuffers(1, &m_ibo);
 		glDeleteVertexArrays(1, &m_vao);
 		glDeleteBuffers(1, &m_vbo);
-		m_ibo = -1;
-		m_vao = -1;
-		m_vbo = -1;
+		m_ibo = 0;
+		m_vao = 0;
+		m_vbo = 0;
 	}
 }
 void GLVRobject::Draw() {
@@ -129,26 +129,27 @@ public:
 	std::string m_modelName;
 public:
 	GLobject() {
-		m_ibo = -1;
-		m_tex = -1;
-		m_vao = -1;
-		m_vbo = -1;
-		m_ubo = -1;
-		m_nbo = -1;
+		m_ibo = 0;
+		m_tex = 0;
+		m_vao = 0;
+		m_vbo = 0;
+		m_ubo = 0;
+		m_nbo = 0;
 		m_modelName = "";
 	}
 
 	GLobject(const std::string &modelName) : m_modelName(modelName) {
-		m_ibo = -1;
-		m_tex = -1;
-		m_vao = -1;
-		m_vbo = -1;
-		m_ubo = -1;
-		m_nbo = -1;
+		m_ibo = 0;
+		m_tex = 0;
+		m_vao = 0;
+		m_vbo = 0;
+		m_ubo = 0;
+		m_nbo = 0;
 	}
 
 	~GLobject() { Cleanup(); }
 
+	void Init(const std::string &modelName);
 	void InitBuffer(std::vector<float> vertices, std::vector<float> normals, std::vector<float> uvs, std::vector<unsigned int> indices);
 	bool BindTexture();
 	void Cleanup();
@@ -156,6 +157,15 @@ public:
 	void DrawVBO();
 	const std::string &GetName() const { return m_modelName; }
 };
+void GLobject::Init(const std::string &modelName) {
+	m_ibo = 0;
+	m_tex = 0;
+	m_vao = 0;
+	m_vbo = 0;
+	m_ubo = 0;
+	m_nbo = 0;
+	m_modelName = modelName;
+}
 
 void GLobject::InitBuffer(std::vector<float> vertices, std::vector<float> normals, std::vector<float> uvs, std::vector<unsigned int> indices) {
 	m_vertCount = vertices.size() / 3;
@@ -210,20 +220,20 @@ void GLobject::Cleanup() {
 	{
 		glDeleteVertexArrays(1, &m_vao);
 		glDeleteBuffers(1, &m_vbo);
-		m_vao = -1;
-		m_vbo = -1;
+		m_vao = 0;
+		m_vbo = 0;
 	}
 	if (m_nbo) {
 		glDeleteBuffers(1, &m_nbo);
-		m_nbo = -1;
+		m_nbo = 0;
 	}
 	if (m_ibo) {
 		glDeleteBuffers(1, &m_ibo);
-		m_ibo = -1;
+		m_ibo = 0;
 	}
 	if (m_ubo) {
 		glDeleteBuffers(1, &m_ubo);
-		m_ubo = -1;
+		m_ubo = 0;
 	}
 }
 void GLobject::DrawIBO() {

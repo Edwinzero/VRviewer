@@ -9,6 +9,6 @@ out vec4 inColor;
 
 void main(){
     inColor.xyz = color;
-    inColor.a = 1.0;
+    inColor.w = 1.0;
     gl_Position = matrix * position;
 }

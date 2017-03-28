@@ -56,6 +56,18 @@
     <ClInclude Include="3rdParty\lodepng.h">
       <Filter>3rdParty</Filter>
     </ClInclude>
+    <ClInclude Include="cv_op.h">
+      <Filter>Calibration</Filter>
+    </ClInclude>
+    <ClInclude Include="camera_calibration.h">
+      <Filter>Calibration</Filter>
+    </ClInclude>
+    <ClInclude Include="sample_cali.h">
+      <Filter>Calibration</Filter>
+    </ClInclude>
+    <ClInclude Include="vicon_tracker.h">
+      <Filter>Calibration</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="todo.txt">

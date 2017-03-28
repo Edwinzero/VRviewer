@@ -81,12 +81,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\MOCA_deps\openvr-1.0.6\headers;C:\MOCA_deps\freeglut\include;C:\MOCA_deps\Depends\include;C:\MOCA_deps\Depends\OpenGL;C:\MOCA_deps\OpenCL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\MOCA_deps\vrpn_07_31_64\vrpn;C:\MOCA_deps\opencv\build\include;C:\MOCA_deps\openvr-1.0.6\headers;C:\MOCA_deps\freeglut\include;C:\MOCA_deps\Depends\include;C:\MOCA_deps\Depends\OpenGL;C:\MOCA_deps\OpenCL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\MOCA_deps\Depends;C:\MOCA_deps\openvr-1.0.6\lib\win64;C:\MOCA_deps\freeglut\lib\x64;C:\MOCA_deps\Depends\OpenGL\lib\x86_64;C:\MOCA_deps\OpenCL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freeglut.lib;glfw3dll.lib;glew32.lib;OpenCL.lib;openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\MOCA_deps\vrpn_07_31_64\vrpn\lib64\debug;C:\MOCA_deps\opencv\build\x64\vc10\lib;C:\MOCA_deps\Depends;C:\MOCA_deps\openvr-1.0.6\lib\win64;C:\MOCA_deps\freeglut\lib\x64;C:\MOCA_deps\Depends\OpenGL\lib\x86_64;C:\MOCA_deps\OpenCL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vrpndll.lib;freeglut.lib;glfw3dll.lib;glew32.lib;OpenCL.lib;openvr_api.lib;opencv_core2411d.lib;opencv_calib3d2411d.lib;opencv_highgui2411d.lib;opencv_imgproc2411d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -110,10 +110,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\MOCA_deps\vrpn_07_31_64\vrpn;C:\Users\robot\Source\Repos\VRviewer\VRviewer;C:\MOCA_deps\opencv\build\include;C:\MOCA_deps\openvr-1.0.6\headers;C:\MOCA_deps\freeglut\include;C:\MOCA_deps\Depends\include;C:\MOCA_deps\Depends\OpenGL;C:\MOCA_deps\OpenCL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>vrpndll.lib;freeglut.lib;glfw3dll.lib;glew32.lib;OpenCL.lib;openvr_api.lib;opencv_core2411.lib;opencv_calib3d2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\MOCA_deps\opencv\build\x64\vc10\lib;C:\MOCA_deps\Depends;C:\MOCA_deps\openvr-1.0.6\lib\win64;C:\MOCA_deps\vrpn_07_31_64\vrpn\lib64\release;C:\MOCA_deps\freeglut\lib\x64;C:\MOCA_deps\Depends\OpenGL\lib\x86_64;C:\MOCA_deps\OpenCL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -122,11 +126,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\lodepng.h" />
+    <ClInclude Include="camera_calibration.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="cv_op.h" />
     <ClInclude Include="GLobject.h" />
     <ClInclude Include="HMD.h" />
     <ClInclude Include="RenderUtils.h" />
+    <ClInclude Include="sample_cali.h" />
     <ClInclude Include="TestScene.h" />
+    <ClInclude Include="vicon_tracker.h" />
     <ClInclude Include="ViveCalbiration.h" />
     <ClInclude Include="VRrender.h" />
   </ItemGroup>

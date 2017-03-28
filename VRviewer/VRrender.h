@@ -851,6 +851,9 @@ void SetupCubeScene() {
 
 }
 void Init_RenderScene(void) {
+	controllerObj.Init("Controller");
+	companionWnd.Init("CompanionWindow");
+
 	SetupTextureMap();
 	SetupCubeScene();
 }
@@ -894,16 +897,16 @@ void SetupDesktopWindow() {
 	std::vector<VertexDataWindow> vVerts;
 
 	// left eye verts
-	vVerts.push_back(VertexDataWindow(glm::vec2(-1, -1), glm::vec2(0, 1)));
-	vVerts.push_back(VertexDataWindow(glm::vec2(0, -1), glm::vec2(1, 1)));
-	vVerts.push_back(VertexDataWindow(glm::vec2(-1, 1), glm::vec2(0, 0)));
-	vVerts.push_back(VertexDataWindow(glm::vec2(0, 1), glm::vec2(1, 0)));
+	vVerts.push_back(VertexDataWindow(glm::vec2(-1, -1), glm::vec2(0, 0)));
+	vVerts.push_back(VertexDataWindow(glm::vec2(0, -1), glm::vec2(1, 0)));
+	vVerts.push_back(VertexDataWindow(glm::vec2(-1, 1), glm::vec2(0, 1)));
+	vVerts.push_back(VertexDataWindow(glm::vec2(0, 1), glm::vec2(1, 1)));
 
 	// right eye verts
-	vVerts.push_back(VertexDataWindow(glm::vec2(0, -1), glm::vec2(0, 1)));
-	vVerts.push_back(VertexDataWindow(glm::vec2(1, -1), glm::vec2(1, 1)));
-	vVerts.push_back(VertexDataWindow(glm::vec2(0, 1), glm::vec2(0, 0)));
-	vVerts.push_back(VertexDataWindow(glm::vec2(1, 1), glm::vec2(1, 0)));
+	vVerts.push_back(VertexDataWindow(glm::vec2(0, -1), glm::vec2(0, 0)));
+	vVerts.push_back(VertexDataWindow(glm::vec2(1, -1), glm::vec2(1, 0)));
+	vVerts.push_back(VertexDataWindow(glm::vec2(0, 1), glm::vec2(0, 1)));
+	vVerts.push_back(VertexDataWindow(glm::vec2(1, 1), glm::vec2(1, 1)));
 
 	GLushort vIndices[] = { 0, 1, 3,   0, 3, 2,   4, 5, 7,   4, 7, 6 };
 	companionWnd.m_indiceCount = _countof(vIndices);
@@ -953,7 +956,7 @@ GLVRobject *FindOrLoadRenderModel(const char *renderModelName) {
 	GLVRobject *rendermodel = NULL;
 	for (std::vector< GLVRobject * >::iterator i = vrRenderModels.begin(); i != vrRenderModels.end(); i++)
 	{
-		if (!stricmp((*i)->GetName().c_str(), renderModelName))
+		if (!_stricmp((*i)->GetName().c_str(), renderModelName))
 		{
 			rendermodel = *i;
 			break;

@@ -1,10 +1,11 @@
 #include "VRrender.h"
+#include "ViveCalbiration.h"
 
 int main(int argc, char **argv) {
-#if 1
+
 	sample_vr_viewer(argc, argv);
-#else
-	Sample_calibrate_vive_vicon();
-#endif
+
+	//Sample_calibrate_vive_vicon();
+
 	return 0;
 }
