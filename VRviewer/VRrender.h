@@ -16,6 +16,7 @@ GLuint GLcontrollerTransformProgram = -1;
 GLuint GLHMDdeviceRenderModelProgram = -1;
 GLuint GLdesktopWindowProgram = -1;
 
+GLuint GLtestSceneProgram = -1;
 
 typedef struct CubeSea {
 	unsigned int m_uiVertcount;
@@ -41,6 +42,7 @@ GLuint sceneMatrixLocation = -1;			// gpu uniform matrix
 GLuint controllerMatrixLocation = -1;
 GLuint renderModelMatrixLocation = -1;
 
+GLuint testSceneMatrixLocation = -1;
 // ** HMD object to commu with vive
 typedef struct HMD {
 	vr::IVRSystem				*m_HMD;
@@ -329,6 +331,10 @@ void RenderCompanionWindow() {
 	glBindVertexArray(companionWnd.m_vao);
 	glUseProgram(GLdesktopWindowProgram);
 
+#if 0
+
+#endif
+#if 1
 	// render left eye (first half of index array )
 	glBindTexture(GL_TEXTURE_2D, viveGLbuf.leftEye.m_resolveTex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -344,6 +350,7 @@ void RenderCompanionWindow() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glDrawElements(GL_TRIANGLES, companionWnd.m_indiceCount / 2, GL_UNSIGNED_SHORT, (const void *)(uintptr_t)(companionWnd.m_indiceCount));
+#endif
 
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -704,8 +711,26 @@ void MouseMoveCallback(int x, int y)
 //=========================================================================
 void Init_GLshader(void) {
 	GLsceneProgram = CompileGLShader("SceneRender", "Shaders/Scene.vs", "Shaders/Scene.fs");
+	sceneMatrixLocation = glGetUniformLocation(GLsceneProgram, "matrix");
+	if (sceneMatrixLocation == -1)
+	{
+		printf("Unable to find matrix uniform in scene shader\n");
+		return;
+	}
 	GLcontrollerTransformProgram = CompileGLShader("ControllerTransform", "Shaders/Controller.vs", "Shaders/Controller.fs");
+	controllerMatrixLocation = glGetUniformLocation(GLcontrollerTransformProgram, "matrix");
+	if (controllerMatrixLocation == -1)
+	{
+		printf("Unable to find matrix uniform in scene shader\n");
+		return;
+	}
 	GLHMDdeviceRenderModelProgram = CompileGLShader("RenderVIVEdevice", "Shaders/RenderVIVEdevice.vs", "Shaders/RenderVIVEdevice.fs");
+	renderModelMatrixLocation = glGetUniformLocation(GLHMDdeviceRenderModelProgram, "matrix");
+	if (renderModelMatrixLocation == -1)
+	{
+		printf("Unable to find matrix uniform in scene shader\n");
+		return;
+	}
 	GLdesktopWindowProgram = CompileGLShader("DesktopWindow", "Shaders/DesktopWindow.vs", "Shaders/DesktopWindow.fs");
 }
 // initialize ogl and imgui

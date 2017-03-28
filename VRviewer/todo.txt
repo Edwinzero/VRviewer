@@ -44,3 +44,11 @@ void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 27 SetupRenderModels == (create / destroy GL render models)																						done
 28 ConvertSteamVRMatrixToMatrix4 == (Converts a SteamVR matrix to our local matrix class) (TODO : Eigen + glm)									done
 
+
+
+0.758078, 0.000000, 0.000000, 0.000000
+0.000000, 0.682137, 0.000000, 0.000000
+-0.056547, -0.004113, -1.003345, -1.000000
+0.024803, 0.000062, -0.085284, 0.015000
+
+
