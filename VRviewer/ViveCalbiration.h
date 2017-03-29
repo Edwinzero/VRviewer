@@ -6,6 +6,7 @@
 
 #include "camera_calibration.h"
 #include "vicon_tracker.h"
+#include "VRrender.h"
 
 static void VRPN_CALLBACK sample_callback(void* user_data, const vrpn_TRACKERCB tData) {
 	VRPN_Tracker *tracker = (VRPN_Tracker*)user_data;
@@ -16,23 +17,142 @@ static void VRPN_CALLBACK sample_callback(void* user_data, const vrpn_TRACKERCB 
 	printf("q : %f %f %f %f\n\n", tData.quat[0], tData.quat[1], tData.quat[2], tData.quat[3]);
 }
 
+cv::Mat vrpn_data_to_mat(vrpn_TRACKERCB data) {
+	return TranslateRotate(cv::Point3d(data.pos[0], data.pos[1], data.pos[2]), QuatToMat(data.quat[0], data.quat[1], data.quat[2], data.quat[3]));
+}
+
+static void VRPN_CALLBACK sample_cali_callback(void* user_data, const vrpn_TRACKERCB tData) {
+	cv::Mat *mat = (cv::Mat*)user_data;
+
+	*mat = vrpn_data_to_mat(tData);
+}
+
+void normlizeVec(double v[3]) {
+	double len = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+
+	if (fabs(len) > 1e-6) {
+		v[0] /= len;
+		v[1] /= len;
+		v[2] /= len;
+	}
+	else {
+		v[0] = 0;
+		v[1] = 0;
+		v[2] = 0;
+	}
+}
+
+void crossProduct(const double u[3], const double v[3], double w[3]) {
+	w[0] = u[1] * v[2] - u[2] * v[1];
+	w[1] = u[2] * v[0] - u[0] * v[2];
+	w[2] = u[0] * v[1] - u[1] * v[0];
+}
+
+void normalizeMatrix(cv::Mat &mat) {
+	double M[3][3];
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			M[i][j] = mat.at<double>(i, j);
+		}
+	}
+
+	normlizeVec(M[2]);
+	crossProduct(M[2], M[0], M[1]);
+	normlizeVec(M[1]);
+	crossProduct(M[1], M[2], M[0]);
+	normlizeVec(M[0]);
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			mat.at<double>(i, j) = M[i][j];
+		}
+	}
+
+	mat.at<double>(3, 3) = 1.0;
+}
+
 //=====================
 // Test Vicon
 //=====================
 void sample_main_vicon_track(void) {
 	const char *ip = "192.168.10.1";
-	VRPN_Tracker vrpn_pattern, vrpn_kinect;
-	vrpn_pattern.Create("PATTERN", ip, &vrpn_pattern, sample_callback);
-	vrpn_kinect.Create("KINECT0", ip, &vrpn_kinect, sample_callback);
+	VRPN_Tracker vrpn_viveController1, vrpn_viveController2;
+	vrpn_viveController1.Create("VIVE_CONTROLLER1", ip, &vrpn_viveController1, sample_callback);
+	vrpn_viveController2.Create("VIVE_CONTROLLER2", ip, &vrpn_viveController2, sample_callback);
 
 	while (1) {
 		// update vrpn
-		vrpn_pattern.Loop();
-		vrpn_kinect.Loop();
+		vrpn_viveController1.Loop();
+		vrpn_viveController2.Loop();
 	}
 }
 
 void Sample_calibrate_vive_vicon() {
+	// VICON
+	const char *ip = "192.168.10.1";
+	VRPN_Tracker vrpn_viveController1, vrpn_viveController2;
+	vrpn_viveController1.Create("VIVE_CONTROLLER1", ip, &vrpn_viveController1, sample_callback);
+	vrpn_viveController2.Create("VIVE_CONTROLLER2", ip, &vrpn_viveController2, sample_callback);
+
+	// HMD
+	HMD hmd;
+	// Loading the SteamVR Runtime
+	vr::EVRInitError eError = vr::VRInitError_None;
+	hmd.m_HMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
+	if (eError != vr::VRInitError_None) {
+		hmd.m_HMD = NULL;
+		printf("Unable to init VR runtime: %s", vr::VR_GetVRInitErrorAsEnglishDescription(eError));
+		return;
+	}
+
+	// Calibration parameter
+	Moca::CameraParameter vive_param;
+
+	// create window for listening key input
+	cv::Mat img = cv::imread("cube_texture.png", CV_LOAD_IMAGE_COLOR);
+	cv::imshow("Monitor", img);
+	cv::waitKey(1);
+
+	// loop
+	while (1) {
+		// wait for key;
+		int key = cv::waitKey(1);
+		
+
+		// hmd process
+		if (!hmd.m_HMD->IsInputFocusCapturedByAnotherProcess()){
+			for (vr::TrackedDeviceIndex_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
+			{
+				if (!hmd.m_HMD->IsTrackedDeviceConnected(unTrackedDevice))
+					continue;
+
+				if (hmd.m_HMD->GetTrackedDeviceClass(unTrackedDevice) != vr::TrackedDeviceClass_Controller)
+					continue;
+
+				if (!hmd.m_TrackedDevicePose[unTrackedDevice].bPoseIsValid)
+					continue;
+
+				const glm::mat4 & mat = hmd.m_mat4DevicePose[unTrackedDevice];
+
+				glm::vec4 center = mat * glm::vec4(0, 0, 0, 1); // center is the equal to marker in vicon space
+			}
+		}
+		
+
+		// vicon record
+
+
+
+		
+	}
+
+
+	// shutdown hmd
+	if (hmd.m_HMD) {
+		vr::VR_Shutdown();
+		hmd.m_HMD = NULL;
+	}
 
 }
 #endif // !_VIVE_CALIBRATION_H

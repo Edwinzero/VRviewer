@@ -1,17 +1,4 @@
-﻿  lodepng.cpp
-3rdParty\lodepng.cpp(794): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
-3rdParty\lodepng.cpp(806): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
-3rdParty\lodepng.cpp(824): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
-3rdParty\lodepng.cpp(1432): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-3rdParty\lodepng.cpp(1436): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-3rdParty\lodepng.cpp(1508): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
-3rdParty\lodepng.cpp(3426): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
-3rdParty\lodepng.cpp(3432): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
-3rdParty\lodepng.cpp(4225): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
-3rdParty\lodepng.cpp(4273): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
-3rdParty\lodepng.cpp(4353): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
-3rdParty\lodepng.cpp(5274): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
-  Main.cpp
+﻿  Main.cpp
 C:\Program Files (x86)\Windows Kits\8.1\Include\shared\minwindef.h(130): warning C4005: 'APIENTRY': macro redefinition
   C:\MOCA_deps\Depends\include\GLFW\glfw3.h(92): note: see previous definition of 'APIENTRY'
 c:\users\robot\source\repos\vrviewer\vrviewer\GLobject.h(171): warning C4267: '=': conversion from 'size_t' to 'GLsizei', possible loss of data
@@ -34,9 +21,9 @@ C:\Users\robot\Source\Repos\VRviewer\VRviewer\cv_op.h(25): warning C4244: '+=': 
 C:\Users\robot\Source\Repos\VRviewer\VRviewer\cv_op.h(26): warning C4244: '+=': conversion from 'const double' to 'float', possible loss of data
 C:\Users\robot\Source\Repos\VRviewer\VRviewer\cv_op.h(27): warning C4244: '+=': conversion from 'const double' to 'float', possible loss of data
   Generating code
-  42 of 796 functions ( 5.3%) were compiled, the rest were copied from previous compilation.
-    7 functions were new in current compilation
-    70 functions had inline decision re-evaluated but remain unchanged
+  103 of 273 functions (37.7%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    12 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   VRviewer.vcxproj -> C:\Users\robot\Source\Repos\VRviewer\x64\Release\VRviewer.exe
   VRviewer.vcxproj -> C:\Users\robot\Source\Repos\VRviewer\x64\Release\VRviewer.pdb (Full PDB)

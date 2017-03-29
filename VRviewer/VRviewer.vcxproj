@@ -81,7 +81,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\MOCA_deps\vrpn_07_31_64\vrpn;C:\MOCA_deps\opencv\build\include;C:\MOCA_deps\openvr-1.0.6\headers;C:\MOCA_deps\freeglut\include;C:\MOCA_deps\Depends\include;C:\MOCA_deps\Depends\OpenGL;C:\MOCA_deps\OpenCL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\robot\Source\Repos\VRviewer\VRviewer;C:\MOCA_deps\vrpn_07_31_64\vrpn;C:\MOCA_deps\opencv\build\include;C:\MOCA_deps\openvr-1.0.6\headers;C:\MOCA_deps\freeglut\include;C:\MOCA_deps\Depends\include;C:\MOCA_deps\Depends\OpenGL;C:\MOCA_deps\OpenCL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

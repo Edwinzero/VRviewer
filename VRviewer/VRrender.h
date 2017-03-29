@@ -43,44 +43,7 @@ GLuint controllerMatrixLocation = -1;
 GLuint renderModelMatrixLocation = -1;
 
 GLuint testSceneMatrixLocation = -1;
-// ** HMD object to commu with vive
-typedef struct HMD {
-	vr::IVRSystem				*m_HMD;
-	vr::IVRRenderModels			*m_RenderModels;
-	vr::TrackedDevicePose_t		m_TrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
-	std::string					m_strDriver;
-	std::string					m_strDisplay;
-	glm::mat4					m_mat4DevicePose[ vr::k_unMaxTrackedDeviceCount ];		// get pose of each device
-	bool						m_ShowTrackedDevice[ vr::k_unMaxTrackedDeviceCount ];	// flag for controlling display device
-	
-	float hmd_NearClip;
-	float hmd_FarClip;
 
-	glm::mat4 m_mat4HMDPose;
-	glm::mat4 m_mat4eyePosLeft;
-	glm::mat4 m_mat4eyePosRight;
-
-	glm::mat4 m_mat4ProjectionCenter;
-	glm::mat4 m_mat4ProjectionLeft;
-	glm::mat4 m_mat4ProjectionRight;
-}HMD;
-
-// ** HMD info that GL render instruction (flags for rendering VIVE dev)
-typedef struct HMDinfo {
-	int m_TrackedControllerCount;
-	int m_TrackedControllerCount_Last;
-	int m_ValidPoseCount;
-	int m_ValidPoseCount_Last;
-	std::string m_strPoseClasses;
-	char m_DevClassChar[vr::k_unMaxTrackedDeviceCount];
-}HMDinfo;
-
-typedef struct GLHMDdata {
-	GLfbo leftEye;
-	GLfbo rightEye;
-	uint32_t m_RenderWidth;
-	uint32_t m_RenderHeight;
-}GLHMDdata;
 //=========================================================================
 //		HMD object
 //=========================================================================
@@ -251,6 +214,7 @@ void RenderControllerAxes() {
 		const glm::mat4 & mat = vive.m_mat4DevicePose[unTrackedDevice];
 
 		glm::vec4 center = mat * glm::vec4(0, 0, 0, 1);
+		printf("Controller center: %f, %f, %f\n", center.x, center.y, center.z);
 
 		for (int i = 0; i < 3; ++i)
 		{
