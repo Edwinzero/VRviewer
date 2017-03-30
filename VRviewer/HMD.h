@@ -44,6 +44,21 @@ typedef struct GLHMDdata {
 	uint32_t m_RenderHeight;
 }GLHMDdata;
 
+typedef struct ControllerData {
+	unsigned int m_index;
+	vr::VRControllerState_t m_curState, m_prevState;
+
+	ControllerData(unsigned int i) {
+		m_index = i;
+	}
+
+	void Update(HMD *hmd) {
+		m_prevState = m_curState;
+		hmd->m_HMD->GetControllerState(m_index, &m_curState, sizeof(m_curState));
+	}
+	
+}ControllerData;
+
 class VIVE_HMD {
 public:
 	vr::IVRSystem				*m_HMD;

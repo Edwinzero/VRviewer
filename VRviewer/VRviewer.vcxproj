@@ -123,6 +123,7 @@
   <ItemGroup>
     <ClCompile Include="3rdParty\lodepng.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="plyloader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\lodepng.h" />
@@ -131,6 +132,7 @@
     <ClInclude Include="cv_op.h" />
     <ClInclude Include="GLobject.h" />
     <ClInclude Include="HMD.h" />
+    <ClInclude Include="plyloader.h" />
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="sample_cali.h" />
     <ClInclude Include="TestScene.h" />

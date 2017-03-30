@@ -30,6 +30,9 @@
     <ClCompile Include="3rdParty\lodepng.cpp">
       <Filter>3rdParty</Filter>
     </ClCompile>
+    <ClCompile Include="plyloader.cpp">
+      <Filter>3rdParty</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h">
@@ -67,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="vicon_tracker.h">
       <Filter>Calibration</Filter>
+    </ClInclude>
+    <ClInclude Include="plyloader.h">
+      <Filter>3rdParty</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

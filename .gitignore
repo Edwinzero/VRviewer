@@ -34,3 +34,5 @@
 *.db
 *.db
 /VRviewer.VC.VC.opendb
+/VRviewer/Data/textured_model.ply
+/VRviewer/Data/tsdf.raw

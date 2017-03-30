@@ -97,6 +97,13 @@ glm::mat4 GetCurrentViewProjectionMatrix(HMD &hmd, vr::Hmd_Eye eye)
 	return matMVP;
 }
 //=========================================================================
+//		HMD predefine methods
+//=========================================================================
+// hhmd render
+// Create/destroy GL Render Models
+void SetupHMDdeviceRenderModels();
+void SetupRenderModelForTrackedDevice(vr::TrackedDeviceIndex_t devID);
+//=========================================================================
 //		HMD draw methods
 //=========================================================================
 // hhmd render
@@ -530,6 +537,70 @@ void UpdateHMDPose() {
 	}
 
 }
+// hhmd event
+void ProcessVREvent(const vr::VREvent_t &event) {
+	switch (event.eventType)
+	{
+	case vr::VREvent_TrackedDeviceActivated:
+	{
+		SetupRenderModelForTrackedDevice(event.trackedDeviceIndex);
+		printf("Device %u attached. Setting up render model.\n", event.trackedDeviceIndex);
+	}
+	break;
+	case vr::VREvent_TrackedDeviceDeactivated:
+	{
+		printf("Device %u detached.\n", event.trackedDeviceIndex);
+	}
+	break;
+	case vr::VREvent_TrackedDeviceUpdated:
+	{
+		printf("Device %u updated.\n", event.trackedDeviceIndex);
+	}
+	break;
+	// Controller
+	case vr::VREvent_ButtonPress: // data is controller
+	{
+
+	}
+	break;
+	case vr::VREvent_ButtonUnpress: // data is controller
+	{
+
+	}
+	break;
+	case vr::VREvent_ButtonTouch: // data is controller
+	{
+
+	}
+	break;
+	case vr::VREvent_ButtonUntouch: // data is controller
+	{
+
+	}
+	break;
+	}
+}
+const int STATE_DOWN = 1, STATE_UP = 2, STATE_ACTIVE = 3; //Something to use to compare states in the events
+
+// hhmd event
+void VRhandleInput() {
+	// Process SteamVR events
+	vr::VREvent_t event;
+	while (vive.m_HMD->PollNextEvent(&event, sizeof(event)))
+	{
+		ProcessVREvent(event);
+	}
+
+	// Process SteamVR controller state
+	for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
+	{
+		vr::VRControllerState_t state;
+		if (vive.m_HMD->GetControllerState(unDevice, &state, sizeof(state)))
+		{
+			vive.m_ShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
+		}
+	}
+}
 void Update(void) {
 	if (reComplieShader) {
 		//GLVRRenderProgram = CompileGLShader("PointRender", "Shaders/PointRender.vs", "Shaders/PointRender.fs");
@@ -548,7 +619,10 @@ void Update(void) {
 
 		printf("PoseCount:%d(%s) Controllers:%d\n", viveInfo.m_ValidPoseCount, viveInfo.m_strPoseClasses.c_str(), viveInfo.m_TrackedControllerCount);
 	}
+
 	UpdateHMDPose();
+
+	VRhandleInput();
 }
 
 
@@ -1014,48 +1088,6 @@ void SetupHMDdeviceRenderModels() {
 
 		SetupRenderModelForTrackedDevice(unTrackedDevice);
 	}
-}
-// hhmd event
-void ProcessVREvent(const vr::VREvent_t &event) {
-	switch (event.eventType)
-	{
-	case vr::VREvent_TrackedDeviceActivated:
-	{
-		SetupRenderModelForTrackedDevice(event.trackedDeviceIndex);
-		printf("Device %u attached. Setting up render model.\n", event.trackedDeviceIndex);
-	}
-	break;
-	case vr::VREvent_TrackedDeviceDeactivated:
-	{
-		printf("Device %u detached.\n", event.trackedDeviceIndex);
-	}
-	break;
-	case vr::VREvent_TrackedDeviceUpdated:
-	{
-		printf("Device %u updated.\n", event.trackedDeviceIndex);
-	}
-	break;
-	}
-}
-// hhmd event
-void VRhandleInput() {
-	// Process SteamVR events
-	vr::VREvent_t event;
-	while (vive.m_HMD->PollNextEvent(&event, sizeof(event)))
-	{
-		ProcessVREvent(event);
-	}
-
-	// Process SteamVR controller state
-	for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
-	{
-		vr::VRControllerState_t state;
-		if (vive.m_HMD->GetControllerState(unDevice, &state, sizeof(state)))
-		{
-			vive.m_ShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
-		}
-	}
-
 }
 // hhmd
 bool InitVRCompositor() {
