@@ -93,12 +93,12 @@ void Sample_calibrate_vive_vicon() {
 	// VICON
 	const char *ip = "192.168.10.1";
 	VRPN_Tracker vrpn_viveController1, vrpn_viveController2;
-	cv::Mat pos_controller1 = cv::Mat_<double>(4, 4);
-	cv::Mat pos_controller2 = cv::Mat_<double>(4, 4);
-	vrpn_viveController1.Create("VIVE_CONTROLLER1", ip, &pos_controller1, sample_cali_callback);
-	vrpn_viveController2.Create("VIVE_CONTROLLER2", ip, &pos_controller2, sample_cali_callback);
-	cv::Point3f local_offset1 = cv::Point3f(0);
-	cv::Point3f local_offset2 = cv::Point3f(0);
+	cv::Mat mat_controller1 = cv::Mat_<double>(4, 4);
+	cv::Mat mat_controller2 = cv::Mat_<double>(4, 4);
+	vrpn_viveController1.Create("VIVE_CONTROLLER1", ip, &mat_controller1, sample_cali_callback);
+	vrpn_viveController2.Create("VIVE_CONTROLLER2", ip, &mat_controller2, sample_cali_callback);
+	cv::Point3f related_pos1 = cv::Point3f(-0.0274004, -0.015137, 0.0289596);
+	cv::Point3f related_pos2 = cv::Point3f(-0.0235951, -0.0346215, 0.0400304);
 
 	// HMD
 	HMD hmd;
@@ -122,15 +122,16 @@ void Sample_calibrate_vive_vicon() {
 	// key state
 	int doCapture1 = 0, doCapture2 = 0;
 	int doCalibrate1 = 0, doCalibrate2 = 0;
-	vr::TrackedDeviceIndex_t leftControllerID = -1;
-	vr::TrackedDeviceIndex_t rightControllerID = -1;
+	int doCaliTogether = 0;
+	vr::TrackedDeviceIndex_t leftControllerID = 3;
+	vr::TrackedDeviceIndex_t rightControllerID = 4;
 	// buffer
 	std::vector<cv::Point3f> controller_points1, controller_points2;
 	std::vector<cv::Point3f> vicon_controller_points1, vicon_controller_points2;
 	// loop
 	while (1) {
-		//vrpn_viveController1.Loop();
-		//vrpn_viveController2.Loop();
+		vrpn_viveController1.Loop();
+		vrpn_viveController2.Loop();
 
 		// wait for key; 
 		// https://github.com/sketchpunk/Unity3dExperiments/blob/master/Vive/Assets/ViveControllerMan.cs
@@ -143,37 +144,24 @@ void Sample_calibrate_vive_vicon() {
 			}
 			exit(0);
 		}
+		else if (key == '1') {
+			doCalibrate1 = 1;
+		}
+		else if (key == '2') {
+			doCalibrate2 = 1;
+		}
+		else if (key == 'c') {
+			doCaliTogether = 1;
+		}
 
-
-
-		// vr event
-		//vr::VREvent_t event;
-		//while (hmd.m_HMD->PollNextEvent(&event, sizeof(event)))
-		//{
-		//	switch (event.eventType) {
-		//		// Controller
-		//		case vr::VREvent_ButtonPress: // data is controller
-		//		{
-		//			printf("button press down\n");
-		//		}
-		//		break;
-		//		case vr::VREvent_ButtonUnpress: // data is controller
-		//		{
-		//			printf("button press up\n");
-		//		}
-		//		break;
-		//	}
-		//}
 		vr::VREvent_t event;
 		while (hmd.m_HMD->PollNextEvent(&event, sizeof(event)))
 		{
 			switch (event.eventType) {
 			case vr::VREvent_TrackedDeviceActivated:
 			{
-				leftControllerID = hmd.m_HMD->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
-				rightControllerID = hmd.m_HMD->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
-				printf("left id: %d\n", leftControllerID);
-				printf("right id: %d\n", rightControllerID);
+				//leftControllerID = 3;//hmd.m_HMD->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);	// 3
+				//rightControllerID = 4;//hmd.m_HMD->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);	// 4
 				printf("Device %u attached. Setting up render model.\n", event.trackedDeviceIndex);
 			}
 			break;
@@ -186,29 +174,12 @@ void Sample_calibrate_vive_vicon() {
 			case vr::VREvent_ButtonPress: // data is controller
 			{
 				printf("button press down\n");
-				// Process SteamVR controller state
-				vr::TrackedPropertyError error;
-				int32_t controllerRole;
-				for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
-				{
-					controllerRole = hmd.m_HMD->GetInt32TrackedDeviceProperty(unDevice, vr::ETrackedDeviceProperty::Prop_ControllerRoleHint_Int32, &error);
-
-					if (controllerRole == vr::ETrackedControllerRole::TrackedControllerRole_RightHand)
-					{
-
-						printf("[RIGHT CONTROLLER] button press down\n");
-
-
-					}
-					else if (controllerRole == vr::ETrackedControllerRole::TrackedControllerRole_LeftHand)
-					{
-						// left hand controller
-						printf("[LEFT CONTROLLER] button press down\n");
-
-
-					}
-
+				if (event.trackedDeviceIndex == 3) {
+					doCapture1 = 1;
 				}
+				if (event.trackedDeviceIndex == 4) {
+					doCapture2 = 1;
+				}			
 			}
 			break;
 			case vr::VREvent_ButtonUnpress: // data is controller
@@ -219,7 +190,19 @@ void Sample_calibrate_vive_vicon() {
 			}
 		}
 
-			
+	
+
+		vr::VRCompositor()->WaitGetPoses(hmd.m_TrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+		for (int dev = 0; dev < vr::k_unMaxTrackedDeviceCount; dev++) {
+			if (hmd.m_TrackedDevicePose[dev].bPoseIsValid) {
+				hmd.m_mat4DevicePose[dev] = ConvertSteamVRMatrixToMat4(hmd.m_TrackedDevicePose[dev].mDeviceToAbsoluteTracking);
+			}
+		}
+
+		if (hmd.m_TrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid) {
+			hmd.m_mat4HMDPose = hmd.m_mat4DevicePose[vr::k_unTrackedDeviceIndex_Hmd];
+			hmd.m_mat4HMDPose = glm::inverse(hmd.m_mat4HMDPose);
+		}
 		
 
 		// hmd process
@@ -237,27 +220,82 @@ void Sample_calibrate_vive_vicon() {
 
 				const glm::mat4 & mat = hmd.m_mat4DevicePose[unTrackedDevice];
 				glm::vec4 center = mat * glm::vec4(0, 0, 0, 1); // center is the equal to marker in vicon space
-				if (unTrackedDevice == leftControllerID) {
+				if (event.trackedDeviceIndex == leftControllerID) {
+					if (doCapture1) {
+						// vive
+						controller_points1.push_back(cv::Point3f(center.x, center.y, center.z));
+						printf("left controller pos: %f, %f, %f\n", center.x, center.y, center.z);
+						printf("controller left current point size: %d\n", controller_points1.size());
 
+						// vicon
+						cv::Point3f exact_pos_controller1 = mat_controller1 * related_pos1;
+						vicon_controller_points1.push_back(exact_pos_controller1);
+						printf("left controller vicon pos: %f, %f, %f\n", exact_pos_controller1.x, exact_pos_controller1.y, exact_pos_controller1.z);
+						printf("controller left current vicon point size: %d\n", controller_points1.size());
+
+						// reset
+						doCapture1 = 0;
+					}
+				}
+				if (event.trackedDeviceIndex == rightControllerID) {
+					if (doCapture2) {
+						// vive
+						controller_points2.push_back(cv::Point3f(center.x, center.y, center.z));
+						printf("right controller pos: %f, %f, %f\n", center.x, center.y, center.z);
+						printf("cotroller right current point size: %d", controller_points2.size());
+
+						// vicon
+						cv::Point3f exact_pos_controller2 = mat_controller2 * related_pos2;
+						vicon_controller_points2.push_back(exact_pos_controller2);
+						printf("right controller vicon pos: %f, %f, %f\n", exact_pos_controller2.x, exact_pos_controller2.y, exact_pos_controller2.z);
+						printf("controller right current vicon point size: %d\n", controller_points2.size());
+
+						doCapture2 = 0;
+					}
 				}
 				
 			}
 		}
 		
 
-		// vicon record
-		cv::Point3f exact_pos_controller1 = pos_controller1 * local_offset1;
-		cv::Point3f exact_pos_controller2 = pos_controller2 * local_offset2;
-
 		// point to point reigstration
 		if (doCalibrate1) {
 			cv::Mat res1;
 			Moca::PairPointsRigidRegistration(controller_points1, vicon_controller_points1, res1);
+			doCalibrate1 = 0;
 		}
 		if (doCalibrate2) {
 			cv::Mat res2;
 			Moca::PairPointsRigidRegistration(controller_points2, vicon_controller_points2, res2);
+			doCalibrate2 = 0;
 		}
+		if (doCaliTogether) {
+			size_t vive_size = controller_points1.size() + controller_points2.size();
+			size_t vicon_size = vicon_controller_points1.size() + vicon_controller_points2.size();
+			if (vive_size != vicon_size) {
+				doCaliTogether = 0;
+				break;
+			}
+
+			std::vector<cv::Point3f> controller_pts(vive_size);
+			std::vector<cv::Point3f> vicon_controller_pts(vicon_size);
+			int buf1size = controller_points1.size();
+			for (int i = 0; i < vicon_size; i++) {
+				if (i < buf1size) {
+					controller_pts[i] = controller_points1[i];
+					vicon_controller_pts[i] = vicon_controller_points1[i];
+				}
+				else {
+					controller_pts[i] = controller_points2[i - buf1size];
+					vicon_controller_pts[i] = vicon_controller_points2[i - buf1size];
+				}
+			}
+			cv::Mat res;
+			Moca::PairPointsRigidRegistration(controller_pts, vicon_controller_pts, res);
+			doCaliTogether = 0;
+		}
+
+		// save to file
 	}
 
 
