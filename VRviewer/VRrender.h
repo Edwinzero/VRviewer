@@ -2,6 +2,7 @@
 #ifndef _VR_RENDER_H
 #define _VR_RENDER_H
 #include "3rdParty\lodepng.h"
+#include "plyloader.h"
 #include "RenderUtils.h"
 #include "GLobject.h"
 #include "TestScene.h"
@@ -16,8 +17,9 @@ GLuint GLcontrollerTransformProgram = -1;
 GLuint GLHMDdeviceRenderModelProgram = -1;
 GLuint GLdesktopWindowProgram = -1;
 
-GLuint GLtestSceneProgram = -1;
+GLuint GLMocaPointRenderProgram = -1;
 
+// scene
 typedef struct CubeSea {
 	unsigned int m_uiVertcount;
 	GLuint m_glSceneVertBuffer;
@@ -32,8 +34,13 @@ typedef struct CubeSea {
 
 GLuint cube_tex = -1;		// m_iTexture 
 CubeSea cubes;
+
+GLobject point_cloud_scene;
+
+// RENDER
+
 GLobject companionWnd;
-GLobject controllerObj;
+GLobject controllerObj;				// what is the purpose of this instance? For drawing controller axis
 unsigned int controllerVertcount = 0;
 std::vector<GLVRobject*> vrRenderModels;								// m_vecRenderModels
 GLVRobject *trackedDeviceToRenderModel[vr::k_unMaxTrackedDeviceCount];  // m_rTrackedDeviceToRenderModel
@@ -42,7 +49,6 @@ GLuint sceneMatrixLocation = -1;			// gpu uniform matrix
 GLuint controllerMatrixLocation = -1;
 GLuint renderModelMatrixLocation = -1;
 
-GLuint testSceneMatrixLocation = -1;
 
 //=========================================================================
 //		HMD object
@@ -51,7 +57,7 @@ HMD vive;							// access all device data
 HMDinfo viveInfo;					// access all device available status
 GLHMDdata viveGLbuf;				// access vive render content
 
-									// hhmd
+// hhmd
 glm::mat4 GetHMDMatrixProjectionEye(HMD &hmd, vr::Hmd_Eye eye) {
 	if (!hmd.m_HMD)
 		return glm::mat4();
@@ -113,47 +119,65 @@ void RenderSceneToEye(vr::Hmd_Eye eye) {
 
 	// draw scene for the eye
 	{
-		glUseProgram(GLsceneProgram);
-		glUniformMatrix4fv(sceneMatrixLocation, 1, GL_FALSE, glm::value_ptr(GetCurrentViewProjectionMatrix(vive, eye)));
+		//glUseProgram(GLsceneProgram);
+		//glUniformMatrix4fv(sceneMatrixLocation, 1, GL_FALSE, glm::value_ptr(GetCurrentViewProjectionMatrix(vive, eye)));
 		//PrintGLMmat4(GetCurrentViewProjectionMatrix(vive, eye));
-		glBindVertexArray(cubes.m_unSceneVAO);
-		glBindTexture(GL_TEXTURE_2D, cube_tex);
-		glDrawArrays(GL_TRIANGLES, 0, cubes.m_uiVertcount);
+		//glBindVertexArray(cubes.m_unSceneVAO);
+		//glBindTexture(GL_TEXTURE_2D, cube_tex);
+		//glDrawArrays(GL_TRIANGLES, 0, cubes.m_uiVertcount);
+		//glBindVertexArray(0);
+
+
+		glEnable(GL_PROGRAM_POINT_SIZE);
+		glUseProgram(GLMocaPointRenderProgram);
+		glm::mat4 model = glm::rotate(45.0f, glm::vec3(0.0, 1.0, 0.0)); 
+		model *= glm::translate(glm::vec3(-1.0, 0.0, -1.5));
+		glUniformMatrix4fv(glGetUniformLocation(GLMocaPointRenderProgram, "model_to_world"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(GLMocaPointRenderProgram, "world_to_vive"), 1, GL_FALSE, glm::value_ptr(GetCurrentViewProjectionMatrix(vive, eye)));
+		glUniform3fv(glGetUniformLocation(GLMocaPointRenderProgram, "color"), 1, glm::value_ptr(glm::vec3(0.0f, 1.0f, 0.0f)));
+		glBindVertexArray(point_cloud_scene.m_vao);
+		glDrawArrays(GL_POINTS, 0, point_cloud_scene.m_vertCount);
 		glBindVertexArray(0);
+		glDisable(GL_PROGRAM_POINT_SIZE);
 
 	}
 
 	bool isInputCapturedByAnotherProcess = vive.m_HMD->IsInputFocusCapturedByAnotherProcess();
 	if (!isInputCapturedByAnotherProcess) {
-		// draw the controller axis lines
-		glUseProgram(GLcontrollerTransformProgram);
-		glUniformMatrix4fv(controllerMatrixLocation, 1, GL_FALSE, glm::value_ptr(GetCurrentViewProjectionMatrix(vive, eye)));
-		glBindVertexArray(controllerObj.m_vao);
-		glDrawArrays(GL_LINES, 0, controllerVertcount);  // change this controllerVercount to obj member var?
-		glBindVertexArray(0);
+		//if (0) {
+			// draw the controller axis lines
+			glUseProgram(GLcontrollerTransformProgram);
+			glUniformMatrix4fv(controllerMatrixLocation, 1, GL_FALSE, glm::value_ptr(GetCurrentViewProjectionMatrix(vive, eye)));
+			glBindVertexArray(controllerObj.m_vao);
+			glDrawArrays(GL_LINES, 0, controllerVertcount);  // change this controllerVercount to obj member var?
+			glBindVertexArray(0);
+		//}
 	}
 
-	// ----- Render Model rendering -----
-	glUseProgram(GLHMDdeviceRenderModelProgram);
-	for (uint32_t unTrackedDevice = 0; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++)
+	// ----- Render Model rendering ----- (this program should encapsulate int HMD)
 	{
-		if (!trackedDeviceToRenderModel[unTrackedDevice] || !vive.m_ShowTrackedDevice[unTrackedDevice])
-			continue;
+		glUseProgram(GLHMDdeviceRenderModelProgram);
+		for (uint32_t unTrackedDevice = 0; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++)
+		{
+			if (!trackedDeviceToRenderModel[unTrackedDevice] || !vive.m_ShowTrackedDevice[unTrackedDevice])
+				continue;
 
-		const vr::TrackedDevicePose_t & pose = vive.m_TrackedDevicePose[unTrackedDevice];
-		if (!pose.bPoseIsValid)
-			continue;
+			const vr::TrackedDevicePose_t & pose = vive.m_TrackedDevicePose[unTrackedDevice];
+			if (!pose.bPoseIsValid)
+				continue;
 
-		if (isInputCapturedByAnotherProcess && vive.m_HMD->GetTrackedDeviceClass(unTrackedDevice) == vr::TrackedDeviceClass_Controller)
-			continue;
+			if (isInputCapturedByAnotherProcess && vive.m_HMD->GetTrackedDeviceClass(unTrackedDevice) == vr::TrackedDeviceClass_Controller)
+				continue;
 
-		const glm::mat4 & matDeviceToTracking = vive.m_mat4DevicePose[unTrackedDevice];
-		glm::mat4 matMVP = GetCurrentViewProjectionMatrix(vive, eye) * matDeviceToTracking;
-		glUniformMatrix4fv(renderModelMatrixLocation, 1, GL_FALSE, glm::value_ptr(matMVP));
+			const glm::mat4 & matDeviceToTracking = vive.m_mat4DevicePose[unTrackedDevice];
+			glm::mat4 matMVP = GetCurrentViewProjectionMatrix(vive, eye) * matDeviceToTracking;
+			glUniformMatrix4fv(renderModelMatrixLocation, 1, GL_FALSE, glm::value_ptr(matMVP));
 
-		trackedDeviceToRenderModel[unTrackedDevice]->Draw();
+			trackedDeviceToRenderModel[unTrackedDevice]->Draw();
+		}
+		glUseProgram(0);
 	}
-	glUseProgram(0);
+
 }
 
 
@@ -404,6 +428,7 @@ void DrawScene3D() {
 	}
 }
 
+// hhmd
 void DrawToHMD() {
 	if (!vive.m_HMD) {
 		return;
@@ -584,6 +609,10 @@ const int STATE_DOWN = 1, STATE_UP = 2, STATE_ACTIVE = 3; //Something to use to 
 
 // hhmd event
 void VRhandleInput() {
+	if (!vive.m_HMD) {		// remove this will cause exception
+		return;
+	}
+
 	// Process SteamVR events
 	vr::VREvent_t event;
 	while (vive.m_HMD->PollNextEvent(&event, sizeof(event)))
@@ -637,11 +666,11 @@ void VRshutdown() {
 		vive.m_HMD = NULL;
 	}
 	// clean vrrendermodel
-	for (std::vector< GLVRobject * >::iterator i = vrRenderModels.begin(); i != vrRenderModels.end(); i++)
+	//for (std::vector< GLVRobject * >::iterator i = vrRenderModels.begin(); i != vrRenderModels.end(); i++)
 	{
-		delete (*i);
+	//	delete (*i);
 	}
-	vrRenderModels.clear();
+	//vrRenderModels.clear();
 	// hmd fbo
 	CleanFBO(viveGLbuf.leftEye);
 	CleanFBO(viveGLbuf.rightEye);
@@ -770,6 +799,8 @@ void Init_GLshader(void) {
 		return;
 	}
 	GLdesktopWindowProgram = CompileGLShader("DesktopWindow", "Shaders/DesktopWindow.vs", "Shaders/DesktopWindow.fs");
+
+	GLMocaPointRenderProgram = CompileGLShader("MOCA_pointCloud", "Shaders/PointCloudRender.vs", "Shaders/PointCloudRender.fs");
 }
 // initialize ogl and imgui
 void Init_OpenGL(int argc, char **argv, const char* title)
@@ -894,6 +925,11 @@ void Init_RenderScene(void) {
 
 	SetupTextureMap();
 	SetupCubeScene();
+
+
+	PLYModel moca_model("textured_model.ply", 1, 1);
+	point_cloud_scene.Init("PointCloud");
+	point_cloud_scene.InitBuffer(moca_model.positions, moca_model.normals, moca_model.colors);
 }
 
 
@@ -988,6 +1024,7 @@ std::string GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t
 	delete[] pchBuffer;
 	return sResult;
 }
+//*
 // hhmd render
 // Finds a render model we've already loaded or loads a new one
 GLVRobject *FindOrLoadRenderModel(const char *renderModelName) {
@@ -1054,6 +1091,7 @@ GLVRobject *FindOrLoadRenderModel(const char *renderModelName) {
 	}
 	return rendermodel;
 }
+//*/
 // hhmd render
 // Create/destroy GL a Render Model for a single tracked device
 void SetupRenderModelForTrackedDevice(vr::TrackedDeviceIndex_t devID) {

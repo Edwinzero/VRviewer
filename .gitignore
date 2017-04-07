@@ -36,3 +36,5 @@
 /VRviewer.VC.VC.opendb
 /VRviewer/Data/textured_model.ply
 /VRviewer/Data/tsdf.raw
+/VRviewer/tsdf.raw
+/VRviewer/textured_model.ply

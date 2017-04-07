@@ -59,6 +59,107 @@ typedef struct ControllerData {
 	
 }ControllerData;
 
+class VIVE_RENDER {
+public:
+	// for display
+	GLfbo m_leftEye;
+	GLfbo m_rightEye;
+	uint32_t m_RenderWidth;
+	uint32_t m_RenderHeight;
+
+	// for rendering device
+	GLuint GLHMDdeviceRenderModelProgram;
+	GLuint renderModelMatrixLocation;
+	std::vector<GLVRobject*> vrRenderModels;								// m_vecRenderModels
+	GLVRobject *trackedDeviceToRenderModel[vr::k_unMaxTrackedDeviceCount];  // m_rTrackedDeviceToRenderModel
+
+	// controller line
+	GLobject controllerObj;				// what is the purpose of this instance? For drawing controller axis
+	GLuint controllerMatrixLocation;
+public:
+	VIVE_RENDER() {
+
+	}
+
+	void Init_RenderModel() {
+
+	}
+
+	void Init_ControllerAxis() {
+
+	}
+
+	// hhmd render
+	// Finds a render model we've already loaded or loads a new one
+	GLVRobject *FindOrLoadRenderModel(const char *renderModelName) {
+		GLVRobject *rendermodel = NULL;
+		for (std::vector< GLVRobject * >::iterator i = vrRenderModels.begin(); i != vrRenderModels.end(); i++)
+		{
+			if (!_stricmp((*i)->GetName().c_str(), renderModelName))
+			{
+				rendermodel = *i;
+				break;
+			}
+		}
+
+		// load the model if we didn't find one
+		if (!rendermodel)
+		{
+			vr::RenderModel_t *pModel;
+			vr::EVRRenderModelError error;
+			while (1)
+			{
+				error = vr::VRRenderModels()->LoadRenderModel_Async(renderModelName, &pModel);
+				if (error != vr::VRRenderModelError_Loading)
+					break;
+
+				ThreadSleep(1);
+			}
+
+			if (error != vr::VRRenderModelError_None)
+			{
+				printf("Unable to load render model %s - %s\n", renderModelName, vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(error));
+				return NULL; // move on to the next tracked device
+			}
+
+			vr::RenderModel_TextureMap_t *pTexture;
+			while (1)
+			{
+				error = vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture);
+				if (error != vr::VRRenderModelError_Loading)
+					break;
+
+				ThreadSleep(1);
+			}
+
+			if (error != vr::VRRenderModelError_None)
+			{
+				printf("Unable to load render texture id:%d for render model %s\n", pModel->diffuseTextureId, renderModelName);
+				vr::VRRenderModels()->FreeRenderModel(pModel);
+				return NULL; // move on to the next tracked device
+			}
+
+			rendermodel = new GLVRobject(renderModelName);
+			if (!rendermodel->InitBuffer(*pModel, *pTexture))
+			{
+				printf("Unable to create GL model from render model %s\n", renderModelName);
+				delete rendermodel;
+				rendermodel = NULL;
+			}
+			else
+			{
+				vrRenderModels.push_back(rendermodel);
+			}
+			vr::VRRenderModels()->FreeRenderModel(pModel);
+			vr::VRRenderModels()->FreeTexture(pTexture);
+		}
+		return rendermodel;
+	}
+
+
+};
+
+
 class VIVE_HMD {
 public:
 	vr::IVRSystem				*m_HMD;
@@ -79,6 +180,8 @@ public:
 	glm::mat4 m_mat4ProjectionCenter;
 	glm::mat4 m_mat4ProjectionLeft;
 	glm::mat4 m_mat4ProjectionRight;
+
+
 public:
 	VIVE_HMD() {
 
@@ -167,7 +270,98 @@ public:
 		return matMVP;
 	}
 
+	// hhmd render
+	void RenderVRStereoTargets(GLuint &program, GLobject &scene) {
+		glClearColor(0.15f, 0.15f, 0.18f, 1.0f);
+		//glClearColor(1.f, 0.f, 0.f, 1.0f);
+		/*
+		// left eye
+		glEnable(GL_MULTISAMPLE);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo_leftEye.m_framebuffer);
+		glViewport(0, 0, m_fbo_RenderWidth, m_fbo_RenderHeight);
+		//glClearColor(1.f, 0.f, 0.f, 1.0f);
+		RenderSceneToEye(vr::Eye_Left, program, scene);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_MULTISAMPLE);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo_leftEye.m_framebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo_leftEye.m_resolveFramebuffer);
+		glBlitFramebuffer(0, 0, m_fbo_RenderWidth, m_fbo_RenderHeight, 0, 0, m_fbo_RenderWidth, m_fbo_RenderHeight,
+			GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+
+		// right eye
+		glEnable(GL_MULTISAMPLE);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo_rightEye.m_framebuffer);
+		glViewport(0, 0, m_fbo_RenderWidth, m_fbo_RenderHeight);
+		//glClearColor(0.f, 1.f, 0.f, 1.0f);
+		RenderSceneToEye(vr::Eye_Right, program, scene);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_MULTISAMPLE);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo_rightEye.m_framebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo_rightEye.m_resolveFramebuffer);
+		glBlitFramebuffer(0, 0, m_fbo_RenderWidth, m_fbo_RenderHeight, 0, 0, m_fbo_RenderWidth, m_fbo_RenderHeight,
+			GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		//*/
+	}
+
 private:
+	// hhmd render
+	void RenderSceneToEye(vr::Hmd_Eye eye, GLuint &scene_program, GLobject &scene) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		/*
+		// draw scene for the eye
+		{
+			glUseProgram(scene_program);
+			glUniformMatrix4fv(sceneMatrixLocation, 1, GL_FALSE, glm::value_ptr(GetCurrentViewProjectionMatrix(eye)));
+			//PrintGLMmat4(GetCurrentViewProjectionMatrix(vive, eye));
+			glBindVertexArray(scene.m_vao);
+			glBindTexture(GL_TEXTURE_2D, scene.m_tex);
+			glDrawArrays(GL_TRIANGLES, 0, scene.m_indiceCount);
+			glBindVertexArray(0);
+
+		}
+
+		bool isInputCapturedByAnotherProcess = vive.m_HMD->IsInputFocusCapturedByAnotherProcess();
+		if (!isInputCapturedByAnotherProcess) {
+			// draw the controller axis lines
+			glUseProgram(controller_program);
+			glUniformMatrix4fv(controllerMatrixLocation, 1, GL_FALSE, glm::value_ptr(GetCurrentViewProjectionMatrix(eye)));
+			glBindVertexArray(controllerObj.m_vao);
+			glDrawArrays(GL_LINES, 0, controllerVertcount);  // change this controllerVercount to obj member var?
+			glBindVertexArray(0);
+		}
+
+		// ----- Render Model rendering -----
+		glUseProgram(GLHMDdeviceRenderModelProgram);
+		for (uint32_t unTrackedDevice = 0; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++)
+		{
+			if (!trackedDeviceToRenderModel[unTrackedDevice] || !vive.m_ShowTrackedDevice[unTrackedDevice])
+				continue;
+
+			const vr::TrackedDevicePose_t & pose = vive.m_TrackedDevicePose[unTrackedDevice];
+			if (!pose.bPoseIsValid)
+				continue;
+
+			if (isInputCapturedByAnotherProcess && vive.m_HMD->GetTrackedDeviceClass(unTrackedDevice) == vr::TrackedDeviceClass_Controller)
+				continue;
+
+			const glm::mat4 & matDeviceToTracking = vive.m_mat4DevicePose[unTrackedDevice];
+			glm::mat4 matMVP = GetCurrentViewProjectionMatrix(eye) * matDeviceToTracking;
+			glUniformMatrix4fv(renderModelMatrixLocation, 1, GL_FALSE, glm::value_ptr(matMVP));
+
+			trackedDeviceToRenderModel[unTrackedDevice]->Draw();
+		}
+		glUseProgram(0);
+		//*/
+	}
+
 	bool InitVRCompositor() {
 		vr::EVRInitError peError = vr::VRInitError_None;
 

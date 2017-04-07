@@ -151,6 +151,8 @@ public:
 
 	void Init(const std::string &modelName);
 	void InitBuffer(std::vector<float> vertices, std::vector<float> normals, std::vector<float> uvs, std::vector<unsigned int> indices);
+	template <class T>
+	void InitBuffer(std::vector<T> vertices, std::vector<T> normals, std::vector<T> colors);
 	bool BindTexture();
 	void Cleanup();
 	void DrawIBO();
@@ -177,6 +179,7 @@ void GLobject::InitBuffer(std::vector<float> vertices, std::vector<float> normal
 	glBindVertexArray(m_vao);
 	/// position
 	glEnableVertexAttribArray(0);
+	glGenBuffers(1, &m_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*m_vertCount * 3, vertices.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0); // bind vao to vbo
@@ -208,6 +211,48 @@ void GLobject::InitBuffer(std::vector<float> vertices, std::vector<float> normal
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+}
+
+template <class T>
+void GLobject::InitBuffer(std::vector<T> vertices, std::vector<T> normals, std::vector<T> colors) {
+	m_vertCount = vertices.size();
+	size_t numNormals = normals.size();
+	size_t numColors = colors.size();
+	if (sizeof(T) == 4) {
+		m_vertCount /= 3;
+		numNormals /= 3;
+		numColors /= 4;
+	}
+
+	glGenVertexArrays(1, &m_vao);
+	glBindVertexArray(m_vao);
+	/// position
+	glEnableVertexAttribArray(0);
+	glGenBuffers(1, &m_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*m_vertCount * 3, vertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0); // bind vao to vbo
+
+																					/// normal
+	if (numNormals > 0) {
+		glEnableVertexAttribArray(1);
+		glGenBuffers(1, &m_nbo);
+		glBindBuffer(GL_ARRAY_BUFFER, m_nbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float)*numNormals * 3, normals.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0); // bind vao to vbo
+	}
+	/// colors
+	if (numColors > 0) {
+		glEnableVertexAttribArray(2);
+		glGenBuffers(1, &m_ubo);
+		glBindBuffer(GL_ARRAY_BUFFER, m_ubo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(int)*numColors * 3, colors.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(int), (GLvoid*)0); // bind vao to vbo
+	}
+
+	// Reset State
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 // TODO
