@@ -93,11 +93,8 @@ public:
 	// for rendering device
 	GLuint GLHMDdeviceRenderModelProgram;
 	GLuint GLcontrollerTransformProgram;
-	GLuint GLdesktopWindowProgram;
-
 	GLuint renderModelMatrixLocation;
 	GLuint controllerMatrixLocation;
-
 
 	std::vector<GLVRobject*> vrRenderModels;								// m_vecRenderModels
 	GLVRobject *trackedDeviceToRenderModel[vr::k_unMaxTrackedDeviceCount];  // m_rTrackedDeviceToRenderModel
@@ -105,8 +102,6 @@ public:
 																			// controller line
 	GLobject controllerObj;				// what is the purpose of this instance? For drawing controller axis
 	unsigned int controllerVertcount;
-
-	GLobject companionWnd;
 
 
 	// HMD Info
@@ -171,7 +166,6 @@ public:
 			printf("Unable to find matrix uniform in scene shader\n");
 			return false;
 		}
-		GLdesktopWindowProgram = CompileGLShader("DesktopWindow", "Shaders/DesktopWindow.vs", "Shaders/DesktopWindow.fs");
 		return true;
 	}
 
@@ -214,14 +208,13 @@ public:
 
 
 	// hhmd
-	void DrawToHMD(void(*renderFuc)(float*), int screenWidth, int screenHeight) {
+	void DrawToHMD(void(*renderFuc)(float*)) {
 		if (!m_HMD) {
 			return;
 		}
 
 		RenderControllerAxes();
 		RenderVRStereoTargets(renderFuc);
-		RenderCompanionWindow(screenWidth, screenHeight);
 
 		vr::Texture_t leftEyeTexture = { (void*)(uintptr_t)m_leftEye.m_resolveTex, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
 		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
@@ -731,92 +724,6 @@ private:
 		std::string sResult = pchBuffer;
 		delete[] pchBuffer;
 		return sResult;
-	}
-
-	void RenderCompanionWindow(int screenWidth, int screenHeight) {
-		glDisable(GL_DEPTH_TEST);
-		glViewport(0, 0, screenWidth, screenHeight);
-
-		glBindVertexArray(companionWnd.m_vao);
-		glUseProgram(GLdesktopWindowProgram);
-
-#if 0
-
-#endif
-#if 1
-		// render left eye (first half of index array )
-		glBindTexture(GL_TEXTURE_2D, m_leftEye.m_resolveTex);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glDrawElements(GL_TRIANGLES, companionWnd.m_indiceCount / 2, GL_UNSIGNED_SHORT, 0);
-
-		// render right eye (second half of index array )
-		glBindTexture(GL_TEXTURE_2D, m_rightEye.m_resolveTex);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glDrawElements(GL_TRIANGLES, companionWnd.m_indiceCount / 2, GL_UNSIGNED_SHORT, (const void *)(uintptr_t)(companionWnd.m_indiceCount));
-#endif
-
-		glBindVertexArray(0);
-		glUseProgram(0);
-	}
-
-
-	struct VertexDataWindow
-	{
-		glm::vec2 position;
-		glm::vec2 texCoord;
-
-		VertexDataWindow(const glm::vec2 & pos, const glm::vec2 tex) : position(pos), texCoord(tex) {	}
-	};
-	void SetupDesktopWindow() {
-		// vive check
-
-		std::vector<VertexDataWindow> vVerts;
-
-		// left eye verts
-		vVerts.push_back(VertexDataWindow(glm::vec2(-1, -1), glm::vec2(0, 0)));
-		vVerts.push_back(VertexDataWindow(glm::vec2(0, -1), glm::vec2(1, 0)));
-		vVerts.push_back(VertexDataWindow(glm::vec2(-1, 1), glm::vec2(0, 1)));
-		vVerts.push_back(VertexDataWindow(glm::vec2(0, 1), glm::vec2(1, 1)));
-
-		// right eye verts
-		vVerts.push_back(VertexDataWindow(glm::vec2(0, -1), glm::vec2(0, 0)));
-		vVerts.push_back(VertexDataWindow(glm::vec2(1, -1), glm::vec2(1, 0)));
-		vVerts.push_back(VertexDataWindow(glm::vec2(0, 1), glm::vec2(0, 1)));
-		vVerts.push_back(VertexDataWindow(glm::vec2(1, 1), glm::vec2(1, 1)));
-
-		GLushort vIndices[] = { 0, 1, 3,   0, 3, 2,   4, 5, 7,   4, 7, 6 };
-		companionWnd.m_indiceCount = _countof(vIndices);
-
-		glGenVertexArrays(1, &companionWnd.m_vao);
-		glBindVertexArray(companionWnd.m_vao);
-
-		glGenBuffers(1, &companionWnd.m_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, companionWnd.m_vbo);
-		glBufferData(GL_ARRAY_BUFFER, vVerts.size() * sizeof(VertexDataWindow), &vVerts[0], GL_STATIC_DRAW);
-
-		glGenBuffers(1, &companionWnd.m_ibo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, companionWnd.m_ibo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, companionWnd.m_indiceCount * sizeof(GLushort), &vIndices[0], GL_STATIC_DRAW);
-
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexDataWindow), (void *)offsetof(VertexDataWindow, position));
-
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexDataWindow), (void *)offsetof(VertexDataWindow, texCoord));
-
-		glBindVertexArray(0);
-
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 };
 

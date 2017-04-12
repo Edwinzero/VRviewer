@@ -13,6 +13,7 @@ unsigned int screenWidth = 1280;
 unsigned int screenHeight = 640;
 bool reComplieShader = false;
 GLuint GLsceneProgram = -1;
+GLuint GLdesktopWindowProgram = -1;
 
 GLuint GLMocaPointRenderProgram = -1;
 
@@ -36,7 +37,7 @@ GLobject point_cloud_scene;
 
 // RENDER
 
-
+GLobject companionWnd;
 
 GLuint sceneMatrixLocation = -1;			// gpu uniform matrix
 
@@ -76,7 +77,38 @@ void RenderGlobalScene(float *vive_to_eye) {
 //=========================================================================
 //		Draw methods
 //=========================================================================
+void RenderCompanionWindow(VIVE_HMD &vive) {
 
+	if (!vive.m_HMD) {
+		return;
+	}
+	glDisable(GL_DEPTH_TEST);
+	glViewport(0, 0, screenWidth, screenHeight);
+
+	glBindVertexArray(companionWnd.m_vao);
+	glUseProgram(GLdesktopWindowProgram);
+
+#if 1
+	// render left eye (first half of index array )
+	glBindTexture(GL_TEXTURE_2D, vive.m_leftEye.m_resolveTex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glDrawElements(GL_TRIANGLES, companionWnd.m_indiceCount / 2, GL_UNSIGNED_SHORT, 0);
+
+	// render right eye (second half of index array )
+	glBindTexture(GL_TEXTURE_2D, vive.m_rightEye.m_resolveTex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glDrawElements(GL_TRIANGLES, companionWnd.m_indiceCount / 2, GL_UNSIGNED_SHORT, (const void *)(uintptr_t)(companionWnd.m_indiceCount));
+#endif
+
+	glBindVertexArray(0);
+	glUseProgram(0);
+}
 
 void DrawScene2D() {
 	{
@@ -170,8 +202,8 @@ void Render(void)
 	//glEnable(GL_DEPTH_TEST);
 
 	if (1) {
-		vive.DrawToHMD(RenderGlobalScene, screenWidth, screenHeight);
-		
+		vive.DrawToHMD(RenderGlobalScene);
+		RenderCompanionWindow(vive);
 	}
 	if (0) {
 		// draw 3D scene
@@ -232,7 +264,7 @@ void Update(void) {
 		GLsceneProgram = CompileGLShader("SceneRender", "Shaders/Scene.vs", "Shaders/Scene.fs");
 		vive.GLcontrollerTransformProgram = CompileGLShader("ControllerTransform", "Shaders/Controller.vs", "Shaders/Controller.fs");
 		vive.GLHMDdeviceRenderModelProgram = CompileGLShader("RenderVIVEdevice", "Shaders/RenderVIVEdevice.vs", "Shaders/RenderVIVEdevice.fs");
-		vive.GLdesktopWindowProgram = CompileGLShader("DesktopWindow", "Shaders/DesktopWindow.vs", "Shaders/DesktopWindow.fs");
+		GLdesktopWindowProgram = CompileGLShader("DesktopWindow", "Shaders/DesktopWindow.vs", "Shaders/DesktopWindow.fs");
 		reComplieShader = false;
 	}
 
@@ -253,7 +285,7 @@ bool keyboardEvent(unsigned char nChar, int nX, int nY)
 	if (nChar == 27) { //Esc-key
 		glutLeaveMainLoop();
 		vive.VRshutdown();
-		vive.companionWnd.Cleanup();
+		companionWnd.Cleanup();
 	}
 	if (nChar == 't' || nChar == 'T') {
 		screenWidth = 1920;
@@ -348,8 +380,8 @@ void Init_GLshader(void) {
 		printf("Unable to find matrix uniform in scene shader\n");
 		return;
 	}
-	//GLdesktopWindowProgram = CompileGLShader("DesktopWindow", "Shaders/DesktopWindow.vs", "Shaders/DesktopWindow.fs");
 #endif
+	GLdesktopWindowProgram = CompileGLShader("DesktopWindow", "Shaders/DesktopWindow.vs", "Shaders/DesktopWindow.fs");
 	GLMocaPointRenderProgram = CompileGLShader("MOCA_pointCloud", "Shaders/PointCloudRender.vs", "Shaders/PointCloudRender.fs");
 }
 // initialize ogl and imgui
@@ -471,7 +503,7 @@ void SetupCubeScene() {
 }
 void Init_RenderScene(void) {
 	vive.controllerObj.Init("Controller");
-	vive.companionWnd.Init("CompanionWindow");
+	companionWnd.Init("CompanionWindow");
 
 	SetupTextureMap();
 	SetupCubeScene();
@@ -483,7 +515,7 @@ void Init_RenderScene(void) {
 }
 
 
-/*
+
 struct VertexDataWindow
 {
 	glm::vec2 position;
@@ -536,7 +568,7 @@ void SetupDesktopWindow() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
-//*/
+
 
 
 void sample_vr_viewer(int argc, char **argv) {
@@ -546,6 +578,7 @@ void sample_vr_viewer(int argc, char **argv) {
 	Init_RenderScene();
 	if (vive.Init_HMD()) {
 		vive.Init_HMDrenderModel();
+		SetupDesktopWindow();
 	}
 	// callback
 	glutDisplayFunc(Render);
