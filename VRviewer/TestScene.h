@@ -95,7 +95,7 @@ void AddCubeToScene(glm::mat4 mat, std::vector<float> &vertdata)
 //================================
 void DrawCoord() {
 	int num = 2 * 7;
-	int grad = 50;
+	int grad = 1;
 
 	glBegin(GL_LINES);
 

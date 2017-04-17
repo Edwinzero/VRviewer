@@ -78,7 +78,7 @@ public:
 	glm::mat4 m_mat4eyePosLeft;
 	glm::mat4 m_mat4eyePosRight;
 
-	glm::mat4 m_mat4ProjectionCenter;
+	//glm::mat4 m_mat4ProjectionCenter;
 	glm::mat4 m_mat4ProjectionLeft;
 	glm::mat4 m_mat4ProjectionRight;
 
@@ -120,7 +120,7 @@ public:
 	bool Init_HMD(void) {
 		// HMD 
 		hmd_NearClip = 0.1f;
-		hmd_FarClip = 30.0f;
+		hmd_FarClip = 1000.0f;
 
 		// Loading the SteamVR Runtime
 		vr::EVRInitError eError = vr::VRInitError_None;
@@ -174,6 +174,7 @@ public:
 		SetupCameras();
 		SetupStereoRenderTarget();
 		SetupHMDdeviceRenderModels();
+		controllerObj.Init("Controller");
 	}
 
 	// hhmd
@@ -469,7 +470,7 @@ private:
 			const glm::mat4 & mat = m_mat4DevicePose[unTrackedDevice];
 
 			glm::vec4 center = mat * glm::vec4(0, 0, 0, 1);
-			printf("Controller center: %f, %f, %f\n", center.x, center.y, center.z);
+			//printf("Controller center: %f, %f, %f\n", center.x, center.y, center.z);
 
 			for (int i = 0; i < 3; ++i)
 			{

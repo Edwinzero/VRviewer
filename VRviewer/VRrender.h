@@ -13,10 +13,12 @@ unsigned int screenWidth = 1280;
 unsigned int screenHeight = 640;
 bool reComplieShader = false;
 GLuint GLsceneProgram = -1;
+GLuint GLMocaPointRenderProgram = -1;
 GLuint GLdesktopWindowProgram = -1;
 
-GLuint GLMocaPointRenderProgram = -1;
-
+//=========================================================================
+//		Global Scene
+//=========================================================================
 // scene
 typedef struct CubeSea {
 	unsigned int m_uiVertcount;
@@ -35,45 +37,15 @@ CubeSea cubes;
 
 GLobject point_cloud_scene;
 
-// RENDER
-
-GLobject companionWnd;
-
 GLuint sceneMatrixLocation = -1;			// gpu uniform matrix
-
-
 
 //=========================================================================
 //		HMD object
 //=========================================================================
 VIVE_HMD vive;
+// Conmpainon window 
+GLobject companionWnd;
 
-//=========================================================================
-//		HMD draw methods
-//=========================================================================
-// render global scene
-void RenderGlobalScene(float *vive_to_eye) {
-	
-	//glUseProgram(GLsceneProgram);
-	//glUniformMatrix4fv(sceneMatrixLocation, 1, GL_FALSE, glm::value_ptr(GetCurrentViewProjectionMatrix(vive, eye)));
-	//PrintGLMmat4(GetCurrentViewProjectionMatrix(vive, eye));
-	//glBindVertexArray(cubes.m_unSceneVAO);
-	//glBindTexture(GL_TEXTURE_2D, cube_tex);
-	//glDrawArrays(GL_TRIANGLES, 0, cubes.m_uiVertcount);
-	//glBindVertexArray(0);
-
-	glEnable(GL_PROGRAM_POINT_SIZE);
-	glUseProgram(GLMocaPointRenderProgram);
-	glm::mat4 model = glm::rotate(45.0f, glm::vec3(0.0, 1.0, 0.0)); // hard code
-	model *= glm::translate(glm::vec3(-1.0, 0.0, -1.5));			// hard code (this mat can be replaced by vicon mat (m_to_w = mat_vicon_to_vive * mat_model_to_vicon)
-	glUniformMatrix4fv(glGetUniformLocation(GLMocaPointRenderProgram, "model_to_vive"), 1, GL_FALSE, glm::value_ptr(model));
-	glUniformMatrix4fv(glGetUniformLocation(GLMocaPointRenderProgram, "vive_to_eye"), 1, GL_FALSE, vive_to_eye);
-	glUniform3fv(glGetUniformLocation(GLMocaPointRenderProgram, "color"), 1, glm::value_ptr(glm::vec3(0.0f, 1.0f, 0.0f)));
-	glBindVertexArray(point_cloud_scene.m_vao);
-	glDrawArrays(GL_POINTS, 0, point_cloud_scene.m_vertCount);
-	glBindVertexArray(0);
-	glDisable(GL_PROGRAM_POINT_SIZE);
-}
 //=========================================================================
 //		Draw methods
 //=========================================================================
@@ -146,23 +118,12 @@ void DrawScene2D() {
 	}
 }
 
-void DrawScene3D() {
+void DrawGroundScene3D(float *vive_to_eye) {
 	{
-		//glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT);
-		glEnable(GL_DEPTH_TEST);
-		// Setup viewport, orthographic projection matrix
-		glViewport(0, 0, (GLsizei)screenWidth, (GLsizei)screenHeight);
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		gluPerspective(45.0, (GLdouble)screenWidth / (GLdouble)screenHeight, 1.0, 10000.0);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		//glMultMatrixf(&camera.Mat()[0][0]);
-
 		// default coord grids
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
+		glMultMatrixf(vive_to_eye);
 		{
 			glLineWidth(2.0);
 			DrawCoord();
@@ -173,20 +134,41 @@ void DrawScene3D() {
 		}
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
-
-		// Point cloud data
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		//glPopAttrib();
 	}
 }
+//=========================================================================
+//		HMD draw methods
+//=========================================================================
+// render global scene
+void RenderGlobalScene(float *vive_to_eye) {
+	// draw 3D ground scene
+	DrawGroundScene3D(vive_to_eye);
 
+	// draw 3D object scene
+	// point cloud data
+	if (1) {
+		glEnable(GL_PROGRAM_POINT_SIZE);
+		glUseProgram(GLMocaPointRenderProgram);
+		glm::mat4 model = glm::rotate(45.0f, glm::vec3(0.0, 1.0, 0.0)); // hard code
+		model *= glm::translate(glm::vec3(-1.0, 0.0, -1.5));			// hard code (this mat can be replaced by vicon mat (m_to_w = mat_vicon_to_vive * mat_model_to_vicon)
+		glUniformMatrix4fv(glGetUniformLocation(GLMocaPointRenderProgram, "model_to_vive"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(GLMocaPointRenderProgram, "vive_to_eye"), 1, GL_FALSE, vive_to_eye);
+		glUniform3fv(glGetUniformLocation(GLMocaPointRenderProgram, "color"), 1, glm::value_ptr(glm::vec3(0.0f, 1.0f, 0.0f)));
+		glBindVertexArray(point_cloud_scene.m_vao);
+		glDrawArrays(GL_POINTS, 0, point_cloud_scene.m_vertCount);
+		glBindVertexArray(0);
+		glDisable(GL_PROGRAM_POINT_SIZE);
+	}
+	// test cube sea
+	if (1) {
+		glUseProgram(GLsceneProgram);
+		glUniformMatrix4fv(sceneMatrixLocation, 1, GL_FALSE, vive_to_eye);
+		glBindVertexArray(cubes.m_unSceneVAO);
+		glBindTexture(GL_TEXTURE_2D, cube_tex);
+		glDrawArrays(GL_TRIANGLES, 0, cubes.m_uiVertcount);
+		glBindVertexArray(0);
+	}
+}
 
 //=========================================================================
 //		Render
@@ -202,16 +184,10 @@ void Render(void)
 	//glEnable(GL_DEPTH_TEST);
 
 	if (1) {
-		vive.DrawToHMD(RenderGlobalScene);
-		RenderCompanionWindow(vive);
+		vive.DrawToHMD(RenderGlobalScene);	
 	}
-	if (0) {
-		// draw 3D scene
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		DrawScene3D();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
+	if (1) {
+		RenderCompanionWindow(vive);
 	}
 	if (0) {
 		// draw 2D scene
@@ -267,11 +243,8 @@ void Update(void) {
 		GLdesktopWindowProgram = CompileGLShader("DesktopWindow", "Shaders/DesktopWindow.vs", "Shaders/DesktopWindow.fs");
 		reComplieShader = false;
 	}
-
 	
-
 	vive.UpdateHMDPose();
-
 	vive.VRhandleInput();
 }
 
@@ -365,22 +338,6 @@ void Init_GLshader(void) {
 		printf("Unable to find matrix uniform in scene shader\n");
 		return;
 	}
-#if 0 
-	GLcontrollerTransformProgram = CompileGLShader("ControllerTransform", "Shaders/Controller.vs", "Shaders/Controller.fs");
-	controllerMatrixLocation = glGetUniformLocation(GLcontrollerTransformProgram, "matrix");
-	if (controllerMatrixLocation == -1)
-	{
-		printf("Unable to find matrix uniform in scene shader\n");
-		return;
-	}
-	GLHMDdeviceRenderModelProgram = CompileGLShader("RenderVIVEdevice", "Shaders/RenderVIVEdevice.vs", "Shaders/RenderVIVEdevice.fs");
-	renderModelMatrixLocation = glGetUniformLocation(GLHMDdeviceRenderModelProgram, "matrix");
-	if (renderModelMatrixLocation == -1)
-	{
-		printf("Unable to find matrix uniform in scene shader\n");
-		return;
-	}
-#endif
 	GLdesktopWindowProgram = CompileGLShader("DesktopWindow", "Shaders/DesktopWindow.vs", "Shaders/DesktopWindow.fs");
 	GLMocaPointRenderProgram = CompileGLShader("MOCA_pointCloud", "Shaders/PointCloudRender.vs", "Shaders/PointCloudRender.fs");
 }
@@ -502,13 +459,14 @@ void SetupCubeScene() {
 
 }
 void Init_RenderScene(void) {
-	vive.controllerObj.Init("Controller");
+	// companion window
 	companionWnd.Init("CompanionWindow");
 
+	// test
 	SetupTextureMap();
 	SetupCubeScene();
 
-
+	// moca
 	PLYModel moca_model("textured_model.ply", 1, 1);
 	point_cloud_scene.Init("PointCloud");
 	point_cloud_scene.InitBuffer(moca_model.positions, moca_model.normals, moca_model.colors);
@@ -525,7 +483,6 @@ struct VertexDataWindow
 };
 void SetupDesktopWindow() {
 	// vive check
-
 	std::vector<VertexDataWindow> vVerts;
 
 	// left eye verts
@@ -568,8 +525,6 @@ void SetupDesktopWindow() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
-
-
 
 void sample_vr_viewer(int argc, char **argv) {
 	Init_OpenGL(argc, argv, "VR render");
